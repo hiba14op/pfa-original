@@ -3,6 +3,9 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const copilotRoutes = require('./routes/copilot.routes'); // ✅ Déclaration unique ici
+const buyerRoutes = require('./routes/buyer.routes'); // ✅ ajoute cette ligne
+const ordersRoutes = require('./routes/order.routes');
+
 
 const app = express();
 // ✅ Middleware CORS simplifié pour développement
@@ -24,7 +27,6 @@ app.use(express.json());
 
 // ✅ Connexion DB
 const db = require('./db');
-const ordersRoutes = require('./routes/order.routes');
 
 
 // ✅ Routes API
@@ -33,16 +35,17 @@ app.use('/api/protected', require('./routes/protected.routes'));
 app.use('/api/products', require('./routes/product.routes'));
 app.use('/api/grouporder', require('./routes/grouporder.routes'));
 app.use('/api/needs', require('./routes/need.routes'));
+app.use('/api/orders', ordersRoutes); 
 app.use('/api/groupParticipation', require('./routes/groupParticipation.routes'));
-app.use('/api/orders', require('./routes/order.routes'));
+
 app.use('/api/reviews', require('./routes/review.routes'));
 app.use('/api/users', require('./routes/user.routes'));
 app.use('/api/payments', require('./routes/payment.routes'));
 app.use('/api/notifications', require('./routes/notification.routes'));
 app.use('/api/grouporders', require('./routes/grouporder.validation.routes'));
 app.use('/api/groups', require('./routes/groupRoutes'));
-app.use('/api/copilot', copilotRoutes); // ✅ Route Copilot activée
-app.use('/api/orders', ordersRoutes);
+app.use('/api/copilot', copilotRoutes); 
+app.use('/api', buyerRoutes);
 // ✅ Routes API
 
 
