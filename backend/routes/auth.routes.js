@@ -2,26 +2,54 @@ const express = require('express');
 const router = express.Router();
 const db = require('../db');
 const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken'); // ✅ pour le token
+const jwt = require('jsonwebtoken');
 
-// ✅ Route : POST /signup (déjà faite)
+// ✅ Route : POST /signup
 router.post('/signup', async (req, res) => {
-  const { username, email, password, phoneNumber, address } = req.body;
+  const { username, email, password, phoneNumber, address, role } = req.body;
 
-  if (!username || !email || !password) {
+  // 🔒 Vérification des champs requis
+  if (!username || !email || !password || !phoneNumber || !address || !role) {
     return res.status(400).json({ message: "Champs requis manquants" });
   }
 
-  const hashedPassword = await bcrypt.hash(password, 10);
-  const sql = 'INSERT INTO user (username, email, password, phoneNumber, address, isActive) VALUES (?, ?, ?, ?, ?, true)';
-  
-  db.query(sql, [username, email, hashedPassword, phoneNumber, address], (err, result) => {
-    if (err) return res.status(500).json({ error: err });
-    res.status(201).json({ message: "Utilisateur inscrit avec succès !" });
-  });
+  try {
+    // 🔍 Vérifier si l'email est déjà utilisé
+    const checkEmail = 'SELECT * FROM user WHERE email = ?';
+    db.query(checkEmail, [email], async (err, results) => {
+      if (err) {
+        console.error("❌ Erreur lors de la vérification d'email :", err);
+        return res.status(500).json({ error: "Erreur serveur" });
+      }
+
+      if (results.length > 0) {
+        return res.status(409).json({ message: "Email déjà utilisé" });
+      }
+
+      // 🔐 Hasher le mot de passe
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      // ✅ Insertion dans la base
+      const sql = `
+        INSERT INTO user (username, email, password, phoneNumber, address, isActive, role)
+        VALUES (?, ?, ?, ?, ?, true, ?)
+      `;
+
+      db.query(sql, [username, email, hashedPassword, phoneNumber, address, role], (err, result) => {
+        if (err) {
+          console.error("❌ Erreur lors de l'insertion :", err);
+          return res.status(500).json({ error: err });
+        }
+        res.status(201).json({ message: "Utilisateur inscrit avec succès !" });
+      });
+    });
+  } catch (error) {
+    console.error("❌ Erreur serveur :", error);
+    res.status(500).json({ message: "Erreur interne du serveur" });
+  }
 });
 
-// ✅ Route : POST /login (à ajouter maintenant)
+// ✅ Route : POST /login
 router.post('/login', (req, res) => {
   const { email, password } = req.body;
 
@@ -31,7 +59,11 @@ router.post('/login', (req, res) => {
 
   const sql = 'SELECT * FROM user WHERE email = ?';
   db.query(sql, [email], async (err, results) => {
-    if (err) return res.status(500).json({ error: err });
+    if (err) {
+      console.error("❌ Erreur SQL :", err);
+      return res.status(500).json({ error: err });
+    }
+
     if (results.length === 0) {
       return res.status(401).json({ message: "Utilisateur non trouvé" });
     }
@@ -42,13 +74,28 @@ router.post('/login', (req, res) => {
       return res.status(401).json({ message: "Mot de passe incorrect" });
     }
 
+    // 🎫 Génération du token JWT
     const token = jwt.sign(
-      { userId: user.userId, username: user.username, email: user.email },
-      'secret_jwt_key', // ⚠️ tu peux utiliser process.env.JWT_SECRET plus tard
+      {
+        userId: user.userId,
+        username: user.username,
+        email: user.email,
+        role: user.role
+      },
+      'secret_jwt_key', // remplace par process.env.JWT_SECRET pour production
       { expiresIn: '1h' }
     );
 
-    res.json({ message: "Connexion réussie", token });
+    res.json({
+      message: "Connexion réussie",
+      token,
+      user: {
+        userId: user.userId,
+        username: user.username,
+        email: user.email,
+        role: user.role
+      }
+    });
   });
 });
 

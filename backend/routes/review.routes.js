@@ -19,6 +19,17 @@ router.post('/', verifyToken, (req, res) => {
     res.status(201).json({ message: "Avis ajouté avec succès." });
   });
 });
+// ✅ Route pour récupérer les avis de l'utilisateur connecté
+router.get('/my', verifyToken, (req, res) => {
+  const userId = req.user.userId;
+
+  const sql = `SELECT * FROM review WHERE userId = ? ORDER BY creationDate DESC`;
+  db.query(sql, [userId], (err, results) => {
+    if (err) return res.status(500).json({ error: err });
+    res.json(results);
+  });
+});
+
 
 // Lister les avis d’un fournisseur
 router.get('/supplier/:supplierId', (req, res) => {

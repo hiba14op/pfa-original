@@ -12,7 +12,8 @@ router.post('/', verifyToken, (req, res) => {
     return res.status(400).json({ message: "Tous les champs sont requis." });
   }
 
-  const sql = `INSERT INTO Needs (userId, productName, description, quantity) VALUES (?, ?, ?, ?)`;
+  const sql = `INSERT INTO needs (userId, productName, description, quantity) VALUES (?, ?, ?, ?)`;
+
 
   db.query(sql, [userId, productName, description, quantity], (err) => {
     if (err) return res.status(500).json({ error: err });
@@ -22,10 +23,11 @@ router.post('/', verifyToken, (req, res) => {
 
 // 📍 GET /api/needs : consulter tous les besoins
 router.get('/', (req, res) => {
-  const sql = `SELECT n.*, u.username 
-               FROM Needs n 
-               JOIN User u ON n.userId = u.userId 
-               ORDER BY createdAt DESC`;
+const sql = `SELECT n.*, u.username 
+             FROM needs n 
+             JOIN user u ON n.userId = u.userId 
+             ORDER BY n.needId DESC`;
+
 
   db.query(sql, (err, results) => {
     if (err) return res.status(500).json({ error: err });
