@@ -38,5 +38,17 @@ router.get('/:orderId/my-items', verifyToken, (req, res) => {
     res.json(results);
   });
 });
+// GET /api/orders — voir toutes les commandes de l'utilisateur
+router.get('/', verifyToken, (req, res) => {
+  const userId = req.user.userId;
+
+  const sql = `SELECT * FROM orders WHERE userId = ? ORDER BY orderDate DESC`;
+
+  db.query(sql, [userId], (err, results) => {
+    if (err) return res.status(500).json({ error: err });
+    res.json(results);
+  });
+});
+
 
 module.exports = router;
