@@ -26,7 +26,30 @@ const SellerLayout = () => {
 
   useEffect(() => {
     fetchStats();
+    fetchProducts();
   }, []);
+  useEffect(() => {
+  if (activeTab === "products") {
+    axios.get("http://localhost:5000/api/seller/products", {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`
+      }
+    })
+    .then(res => setProducts(res.data))
+    .catch(err => console.error("❌ Erreur chargement produits vendeur :", err));
+  }
+}, [activeTab]);
+const fetchProducts = () => {
+  axios.get("http://localhost:5000/api/seller/products", {
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`
+    }
+  })
+  .then(res => setProducts(res.data))
+  .catch(err => console.error("❌ Erreur chargement produits vendeur :", err));
+};
+
+
 
   const fetchStats = () => {
     axios.get('http://localhost:5000/api/seller/stats', {
@@ -52,6 +75,34 @@ const SellerLayout = () => {
           return <CreateGroup/>;
       case 'groups':
           return <GroupList />;
+     case 'products':
+  return (
+    <div>
+      <h2 className="text-xl font-semibold mb-4">Mes Produits</h2>
+      {products.length === 0 ? (
+        <p className="text-gray-500">Aucun produit trouvé.</p>
+      ) : (
+        <ul className="space-y-4">
+          {products.map((prod, idx) => (
+            <li key={idx} className="bg-white p-4 shadow rounded">
+              <p className="font-bold text-lg">{prod.name}</p>
+              <p>Description : {prod.description}</p>
+              <p>Prix : {prod.unitPrice} €</p>
+              <p>Stock : {prod.stockQuantity}</p>
+              <p>
+                Statut :{" "}
+                <span className={prod.isAvailable ? "text-green-600" : "text-red-600"}>
+                  {prod.isAvailable ? "Disponible" : "Indisponible"}
+                </span>
+              </p>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+
+
 
   case 'home':
     return (

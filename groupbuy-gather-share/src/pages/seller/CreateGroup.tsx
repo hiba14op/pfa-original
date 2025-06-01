@@ -40,7 +40,6 @@ const categories = [
 export default function CreateGroup() {
   const [formData, setFormData] = useState({
     title: '',
-    description: '',
     category: '',
     originalPrice: '',
     minParticipants: '',
@@ -134,16 +133,6 @@ export default function CreateGroup() {
                   value={formData.title}
                   onChange={e =>
                     handleChange('title', e.target.value)
-                  }
-                  required
-                />
-              </div>
-              <div>
-                <Label>Description</Label>
-                <Textarea
-                  value={formData.description}
-                  onChange={e =>
-                    handleChange('description', e.target.value)
                   }
                   required
                 />

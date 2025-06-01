@@ -24,9 +24,12 @@ const GroupList = () => {
         Authorization: `Bearer ${localStorage.getItem('token')}`
       }
     })
-    .then(res => setGroups(res.data))
-    .catch(err => console.error("Erreur récupération des groupes", err));
-  };
+    .then(res => {
+    console.log("✅ Données reçues du backend :", res.data); // 🔍 Ajoute cette ligne
+    setGroups(res.data);
+  })
+  .catch(err => console.error("❌ Erreur récupération des groupes", err));
+};
 
   const deleteGroup = (id) => {
     if (!window.confirm("Supprimer ce groupe ?")) return;
