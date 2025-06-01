@@ -29,13 +29,31 @@ router.get('/group/joined', (req, res) => {
 // 🔹 GET commandes
 router.get('/orders', (req, res) => {
   const userId = req.query.userId;
-  const sql = 'SELECT * FROM payment WHERE userId = ?';
+  const sql = `
+    SELECT 
+      orderId AS id,
+      productName,
+      amount AS totalAmount,
+      status,
+      orderDate AS date,
+      deliveryAddress
+    FROM orders
+    WHERE userId = ?;
+  `;
+
   db.query(sql, [userId], (err, results) => {
-    if (err) return res.status(500).json({ error: err });
-    res.json(results);
+    if (err) {
+      console.error(err);
+      return res.status(500).json({ error: 'Erreur serveur' });
+    }
+    const orders = results.map(order => {
+      return {
+        ...order,
+        productName: order.productName || "Non spécifié"
+      };
+    });
+    res.json(orders);
   });
 });
-
-
 
 module.exports = router;

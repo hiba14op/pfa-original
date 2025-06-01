@@ -2,8 +2,10 @@ import { useEffect, useState } from 'react';
 import axios from 'axios';
 import CreateGroup from '@/pages/seller/CreateGroup';
 import GroupList from './GroupList.tsx';
- // ajuste le chemin si nécessaire
-; // ajuste le chemin si besoin
+import MesProduits from '@/pages/seller/MesProduits';
+import SellerOrders from '@/pages/seller/SellerOrders';
+import SellerSettings from '@/pages/seller/SellerSettings';
+
 
 import {
   User,
@@ -75,34 +77,13 @@ const fetchProducts = () => {
           return <CreateGroup/>;
       case 'groups':
           return <GroupList />;
-     case 'products':
-  return (
-    <div>
-      <h2 className="text-xl font-semibold mb-4">Mes Produits</h2>
-      {products.length === 0 ? (
-        <p className="text-gray-500">Aucun produit trouvé.</p>
-      ) : (
-        <ul className="space-y-4">
-          {products.map((prod, idx) => (
-            <li key={idx} className="bg-white p-4 shadow rounded">
-              <p className="font-bold text-lg">{prod.name}</p>
-              <p>Description : {prod.description}</p>
-              <p>Prix : {prod.unitPrice} €</p>
-              <p>Stock : {prod.stockQuantity}</p>
-              <p>
-                Statut :{" "}
-                <span className={prod.isAvailable ? "text-green-600" : "text-red-600"}>
-                  {prod.isAvailable ? "Disponible" : "Indisponible"}
-                </span>
-              </p>
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
-  );
-
-
+      case 'products':
+        return <MesProduits />;
+      case 'orders':
+        return <SellerOrders />;
+      case 'settings':
+        return <SellerSettings />;
+          
 
   case 'home':
     return (

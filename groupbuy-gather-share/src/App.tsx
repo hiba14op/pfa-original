@@ -61,7 +61,7 @@ const ProtectedRoute = ({
   allowedRoles: string[];
 }) => {
   const { user, isAuthenticated } = useAuth();
-  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  if (!isAuthenticated) return <Navigate to="/protected" replace />;
   if (allowedRoles.length > 0 && !allowedRoles.includes(user?.role || ""))
     return <Navigate to="/" replace />;
   return <>{children}</>;
@@ -82,10 +82,27 @@ export default function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/test" element={<TestConnection />} />
-
+ <Route
+   path="/protected"
+   element={<ProtectedTest />}
+ /> 
         {/* Public groups */}
-         <Route path="group-list" element={<GroupList fetchData={() => {}} />} /> {/* Liste des groupes */}
-        <Route path="/groups/:id" element={<GroupDetail />} />
+        <Route
+  path="/group-list/:id"
+  element={
+    <ProtectedRoute allowedRoles={[]}>
+      <GroupDetail />
+    </ProtectedRoute>
+  }
+/>
+<Route
+  path="/group-list"
+  element={
+    <ProtectedRoute allowedRoles={[]}>
+      <GroupList fetchData={() => {}} /> {/* Composant pour afficher la liste des groupes */}
+    </ProtectedRoute>
+  }
+/>
 
         {/* Buyer Layout avec sous-routes */}
        <Route
@@ -101,10 +118,10 @@ export default function App() {
   <Route path="MesGroupes" element={<MesGroupes />} /> {/* Mes Groupes */}
   <Route path="orders" element={<OrderList />} /> {/* Commandes */}
   <Route path="reviews" element={<MesAvis />} /> {/* Mes Avis */}
-  <Route path="products" element={<ProductList />} /> {/* Liste des produits */}
+  <Route path="products" element={<SettingsPage />} /> {/* Liste des produits */}
   <Route path="settings" element={<SettingsPage />} /> {/* Paramètres */}
   <Route path="create-group" element={<CreateGroup />} /> {/* Créer un Groupe */}
- <Route path="protected" element={<ProtectedTest />} /> 
+
   {/* Page de test protégée */}
 
 </Route>

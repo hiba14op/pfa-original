@@ -1,14 +1,26 @@
 import React from "react";
-// Make sure the path is correct and the file exists
 import { useAuth } from "../../contexts/AuthContext";
+import { Navigate } from "react-router-dom";
 
 const ProtectedTest: React.FC = () => {
   const { user, isAuthenticated } = useAuth();
 
+  // Rediriger vers /login si l'utilisateur n'est pas connecté
   if (!isAuthenticated) {
-    return <div>Accès refusé : Vous devez être connecté pour accéder à cette page.</div>;
+    return <Navigate to="/login" replace />;
   }
 
+  // Afficher un message d'accès restreint si l'utilisateur n'a pas le rôle "buyer"
+  if (user?.role !== "buyer") {
+    return (
+      <div>
+        <h1>Accès restreint</h1>
+        <p>Seuls les acheteurs peuvent accéder à cette page.</p>
+      </div>
+    );
+  }
+
+  // Afficher le contenu pour les utilisateurs autorisés
   return (
     <div>
       <h1>Bienvenue sur la page protégée</h1>

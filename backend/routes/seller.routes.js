@@ -23,6 +23,7 @@ router.get('/stats', verifyToken, (req, res) => {
         db.query('SELECT COUNT(*) AS count FROM grouporder WHERE supplierId = ?', [sellerId], (err, result4) => {
           if (err) return res.status(500).json({ error: err });
           stats.groups = result4[0].count;
+          stats.products = stats.groups;
           res.json(stats);
         });
       });
@@ -33,6 +34,8 @@ router.get('/stats', verifyToken, (req, res) => {
 // 🔍 Mes groupes créés
 router.get('/my-groups', verifyToken, (req, res) => {
   const sellerId = req.user.userId;
+  console.log("✅ [POST /groups] Reçu pour sellerId =", sellerId);
+  console.log("📦 Données reçues dans req.body :", req.body);
   const sql = `SELECT orderId AS id, productName, maxGroupSize, status, endDate FROM grouporder WHERE supplierId = ? ORDER BY created_at DESC`;
   db.query(sql, [sellerId], (err, results) => {
     if (err) return res.status(500).json({ error: 'Erreur serveur' });
@@ -79,24 +82,36 @@ router.get('/group/:id', verifyToken, (req, res) => {
 router.post('/groups', verifyToken, (req, res) => {
   const sellerId = req.user.userId;
   const { title, category, originalPrice, minParticipants, maxParticipants, endDate, features, priceBreakdown } = req.body;
-
+  console.log("✅ [POST /groups] sellerId =", sellerId);
+  console.log("📦 Données reçues dans req.body :", req.body);
+   
   const productSQL = `INSERT INTO product (name, description, unitPrice, stockQuantity, isAvailable, supplierId) VALUES (?, ?, ?, ?, ?, ?)`;
   const productValues = [title, 'Produit lié au groupe', originalPrice, 10, 1, sellerId];
 
   db.query(productSQL, productValues, (err, productResult) => {
-    if (err) return res.status(500).json({ error: "Erreur insertion produit" });
+    if (err) {
+      console.error("❌ Erreur insertion produit :", err); // 👈 AJOUT
+      return res.status(500).json({ error: "Erreur insertion produit", details: err });
+    }
     const productId = productResult.insertId;
+    console.log("✅ Produit inséré, ID =", productId);
+    
 
     const groupSQL = `INSERT INTO grouporder (supplierId, productName, category, originalPrice, minGroupSize, maxGroupSize, endDate, productId) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
     db.query(groupSQL, [sellerId, title, category, originalPrice, minParticipants, maxParticipants, endDate, productId], (err, groupResult) => {
-      if (err) return res.status(500).json({ error: "Erreur création groupe" });
+      if (err) {
+        console.error("❌ Erreur création groupe :", err); // 👈 AJOUT
+        return res.status(500).json({ error: "Erreur création groupe", details: err });
+      }
       const groupId = groupResult.insertId;
+      console.log("✅ Groupe inséré, ID =", groupId);
 
       if (Array.isArray(features)) {
         features.forEach(f => db.query(`INSERT INTO group_features (groupId, feature) VALUES (?, ?)`, [groupId, f]));
       }
       if (Array.isArray(priceBreakdown)) {
         priceBreakdown.forEach(t => db.query(`INSERT INTO pricing_tiers (groupId, rangeLabel, price) VALUES (?, ?, ?)`, [groupId, t.participants, t.price]));
+        console.log("📊 Tranche ajoutée :", t);
       }
 
       res.status(201).json({ message: "Groupe et produit créés avec succès", groupId });
@@ -104,13 +119,71 @@ router.post('/groups', verifyToken, (req, res) => {
   });
 });
 
-// 📦 Produits du vendeur
-router.get('/products', verifyToken, (req, res) => {
+//Produits vendeur 
+
+router.get('/my-products', verifyToken, (req, res) => {
   const sellerId = req.user.userId;
-  const sql = `SELECT productId, name, description, unitPrice, stockQuantity, isAvailable FROM product WHERE supplierId = ?`;
+
+  const sql = `
+    SELECT id, productName 
+    FROM grouporder 
+    WHERE userId = ?
+  `;
+
   db.query(sql, [sellerId], (err, results) => {
-    if (err) return res.status(500).json({ error: "Erreur serveur" });
+    if (err) return res.status(500).json({ error: 'Erreur serveur' });
     res.json(results);
+  });
+});
+
+
+
+//orders
+router.get('/orders', verifyToken, (req, res) => {
+  const sellerId = req.user.userId;
+
+  const sql = `
+    SELECT o.orderId, o.productName, o.amount, o.status, o.orderDate
+    FROM orders o
+    JOIN grouporder g ON o.groupId = g.orderId
+    WHERE g.supplierId = ?
+    ORDER BY o.orderDate DESC
+  `;
+
+  db.query(sql, [sellerId], (err, results) => {
+    if (err) return res.status(500).json({ error: 'Erreur serveur' });
+    res.json(results);
+  });
+});
+
+//Settings
+router.get('/profile', verifyToken, (req, res) => {
+  const sellerId = req.user.userId;
+
+  db.query(
+    'SELECT username, email, phoneNumber, address FROM user WHERE userId = ?',
+    [sellerId],
+    (err, results) => {
+      if (err) return res.status(500).json({ error: 'Erreur serveur' });
+      if (results.length === 0) return res.status(404).json({ error: 'Vendeur introuvable' });
+
+      res.json(results[0]);
+    }
+  );
+});
+router.put('/profile', verifyToken, (req, res) => {
+  const sellerId = req.user.userId;
+  const { username, email, phoneNumber, address } = req.body;
+
+  const sql = `
+    UPDATE user 
+    SET username = ?, email = ?, phoneNumber = ?, address = ?
+    WHERE userId = ?
+  `;
+
+  db.query(sql, [username, email, phoneNumber, address, sellerId], (err) => {
+    if (err) return res.status(500).json({ error: 'Erreur serveur' });
+    res.json({ message: 'Profil mis à jour avec succès' });
   });
 });
 

@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-
 const CreateGroup = () => {
+  const navigate = useNavigate();
   const [form, setForm] = useState({
     productName: '',
     status: 'ouvert',
@@ -22,11 +23,14 @@ const CreateGroup = () => {
     e.preventDefault();
     try {
       await axios.post('http://localhost:5000/api/grouporder', form, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`
-        }
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('token')}`
+      }
       });
       alert('✅ Groupe créé avec succès !');
+      navigate('/group-list');
+      fetchGroups();
+      // fetchGroups is not defined in this component, so this block is removed
     } catch (err: any) {
       alert('❌ Erreur : ' + (err.response?.data?.message || 'Inconnue'));
     }
@@ -70,4 +74,8 @@ const CreateGroup = () => {
   );
 };
 export default CreateGroup;
+
+function fetchGroups() {
+  throw new Error('Function not implemented.');
+}
 

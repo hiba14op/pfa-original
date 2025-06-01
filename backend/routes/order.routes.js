@@ -39,15 +39,41 @@ router.get('/:orderId/my-items', verifyToken, (req, res) => {
     res.json(results);
   });
 });
-// GET /api/orders — voir toutes les commandes de l'utilisateur
+// GET /api/orders/my — voir toutes les commandes de l'utilisateur
 router.get('/my', verifyToken, (req, res) => {
   const userId = req.user.userId;
 
-  const sql = `SELECT * FROM orders WHERE userId = ? ORDER BY orderDate DESC`;
+  const sql = `
+    SELECT 
+      o.orderId AS id,
+      o.productName,
+      o.amount AS totalAmount,
+      o.status,
+      o.orderDate AS date,
+      g.deliveryAddress
+    FROM orders o
+    LEFT JOIN groupParticipation gp ON o.orderId = gp.orderId
+    LEFT JOIN grouporder g ON o.orderId = g.orderId
+    WHERE o.userId = ? OR gp.userId = ?
+    ORDER BY o.orderDate DESC
+  `;
 
-  db.query(sql, [userId], (err, results) => {
-    if (err) return res.status(500).json({ error: err });
-    res.json(results);
+  db.query(sql, [userId, userId], (err, results) => {
+    if (err) {
+      console.error("Erreur lors de la récupération des commandes :", err);
+      return res.status(500).json({ error: err });
+    }
+    console.log("Résultats des commandes :", results); // Ajoutez ce log
+    const orders = results.map(order => {
+      const productName = order.productName || "Non spécifié";
+      const deliveryAddress = order.deliveryAddress || "Inconnue";
+      return {
+        ...order,
+        productName,
+        deliveryAddress
+      };
+    });
+    res.json(orders);
   });
 });
 

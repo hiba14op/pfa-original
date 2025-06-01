@@ -21,7 +21,7 @@ router.post('/', verifyToken, (req, res) => {
   const sql = `
     INSERT INTO grouporder 
     (status, totalAmount, supplierId, maxGroupSize, minGroupSize, currentGroupSize, deliveryAddress, userId, image) 
-    VALUES (?, ?, ?, ?, ?, 1, ?, ?, ?)`;
+    VALUES (?, ?, ?, ?, ?, 0, ?, ?, ?)`;
 
   db.query(
     sql,
@@ -34,10 +34,23 @@ router.post('/', verifyToken, (req, res) => {
 });
 
 // 🔹 Voir les groupes disponibles
-router.get('/', (req, res) => {
-  db.query('SELECT * FROM grouporder WHERE status = "ouvert"', (err, results) => {
+router.get('/', verifyToken, (req, res) => {
+  const userId = req.user.userId; // Récupérer l'utilisateur connecté
+
+  const sql = `
+    SELECT g.*, 
+           CASE 
+             WHEN gp.userId IS NOT NULL THEN 1 
+             ELSE 0 
+           END AS isJoined
+    FROM grouporder g
+    LEFT JOIN groupparticipation gp ON g.orderId = gp.orderId AND gp.userId = ?
+    WHERE g.status = 'ouvert';
+  `;
+
+  db.query(sql, [userId], (err, results) => {
     if (err) return res.status(500).json({ error: err });
-    res.json(results); // ✅ image incluse automatiquement si elle existe dans la table
+    res.json(results);
   });
 });
 // 🔹 Voir les détails d'un groupe
@@ -128,23 +141,14 @@ router.post('/:id/join', verifyToken, (req, res) => {
       return res.status(400).json({ message: "Groupe déjà complet" });
     }
 
-    const checkParticipation = `SELECT * FROM Groupparticipation WHERE orderId = ? AND userId = ?`;
-    db.query(checkParticipation, [groupId, userId], (err, result) => {
+    const insertSql = `INSERT INTO groupparticipation (orderId, userId) VALUES (?, ?)`;
+    db.query(insertSql, [groupId, userId], (err) => {
       if (err) return res.status(500).json({ error: err });
 
-      if (result.length > 0) {
-        return res.status(400).json({ message: "Vous avez déjà rejoint ce groupe" });
-      }
-
-      const insertSql = `INSERT INTO Groupparticipation (orderId, userId) VALUES (?, ?)`;
-      db.query(insertSql, [groupId, userId], (err) => {
+      const updateSql = `UPDATE grouporder SET currentGroupSize = currentGroupSize + 1 WHERE orderId = ?`;
+      db.query(updateSql, [groupId], (err) => {
         if (err) return res.status(500).json({ error: err });
-
-        const updateSql = `UPDATE grouporder SET currentGroupSize = currentGroupSize + 1 WHERE orderId = ?`;
-        db.query(updateSql, [groupId], (err) => {
-          if (err) return res.status(500).json({ error: err });
-          res.status(200).json({ message: "Vous avez rejoint le groupe avec succès" });
-        });
+        res.status(200).json({ message: "Vous avez rejoint le groupe avec succès" });
       });
     });
   });

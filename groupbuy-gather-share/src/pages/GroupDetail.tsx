@@ -67,6 +67,37 @@ const GroupDetail = () => {
     }
   };
 
+  const joinGroup = async (groupId: string) => {
+    try {
+      await axios.post(
+        `http://localhost:5000/api/grouporder/join/${groupId}`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
+          },
+        }
+      );
+
+      toast({
+        title: 'Succès',
+        description: 'Vous avez rejoint le groupe avec succès.',
+      });
+
+      // Mettre à jour localement le nombre de participants
+      setGroup((prevGroup) => ({
+        ...prevGroup,
+        currentGroupSize: prevGroup.currentGroupSize + 1,
+      }));
+    } catch (error: any) {
+      toast({
+        title: 'Erreur',
+        description: error.response?.data?.message || "Une erreur s'est produite",
+        variant: 'destructive',
+      });
+    }
+  };
+
   const getDaysRemaining = (endDate: string) => {
     const today = new Date();
     const end = new Date(endDate);
