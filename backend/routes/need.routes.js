@@ -23,7 +23,7 @@ router.post('/', verifyToken, (req, res) => {
 
 // 📍 GET /api/needs : consulter tous les besoins
 router.get('/', (req, res) => {
-const sql = `SELECT n.*, u.username 
+const sql = `SELECT n.*
              FROM needs n 
              JOIN user u ON n.userId = u.userId 
              ORDER BY n.needId DESC`;

@@ -13,11 +13,11 @@ router.get('/needs', (req, res) => {
 });
 
 // 🔹 GET groupes rejoints
-router.get('/groups/joined', (req, res) => {
+router.get('/group/joined', (req, res) => {
   const userId = req.query.userId;
   const sql = `
     SELECT g.* FROM groupparticipation gp
-    JOIN grouporder g ON gp.groupId = g.id
+    JOIN grouporder g ON gp.orderId = g.orderId
     WHERE gp.userId = ?
   `;
   db.query(sql, [userId], (err, results) => {
@@ -36,18 +36,6 @@ router.get('/orders', (req, res) => {
   });
 });
 
-// 🔹 GET économies
-router.get('/savings', (req, res) => {
-  const userId = req.query.userId;
-  const sql = `
-    SELECT SUM(originalPrice - paidPrice) AS total
-    FROM payment
-    WHERE userId = ?
-  `;
-  db.query(sql, [userId], (err, results) => {
-    if (err) return res.status(500).json({ error: err });
-    res.json({ total: results[0].total || 0 });
-  });
-});
+
 
 module.exports = router;

@@ -8,8 +8,7 @@ export default function Navbar() {
   return (
     <nav className="p-4 border-b bg-white shadow-sm flex items-center">
       <Link to="/">Accueil</Link>
-      <Link to="/groups" className="ml-4">Groupes</Link>
-
+      <Link to="/group-list" className="ml-4">Groupes</Link>
       {/* si pas connecté → login/signup */}
       {!isAuthenticated ? (
         <>

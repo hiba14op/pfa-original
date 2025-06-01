@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Navigation } from '@/components/Navigation';
@@ -18,21 +18,36 @@ const Payment = () => {
 
   const [paymentMethod, setPaymentMethod] = useState('card');
   const [loading, setLoading] = useState(false);
+  const [order, setOrder] = useState<any>(null); // Stocker les données de commande
+  const [user, setUser] = useState<any>(null); // Stocker les données utilisateur
 
-  const order = {
-    id: orderId,
-    product: 'iPhone 15 Pro 128GB',
-    quantity: 1,
-    price: 999,
-    shipping: 0,
-    tax: 199.8,
-    total: 1198.8,
-    group: {
-      participants: 45,
-      maxParticipants: 50,
-      discount: 17
-    }
-  };
+  // Récupérer les données utilisateur et de commande
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const [orderResponse, userResponse] = await Promise.all([
+          axios.get(`http://localhost:5000/api/orders/${orderId}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+          axios.get('http://localhost:5000/api/users/me', {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+        ]);
+
+        setOrder(orderResponse.data);
+        setUser(userResponse.data);
+      } catch (error) {
+        toast({
+          title: 'Erreur',
+          description: "Impossible de charger les données",
+          variant: 'destructive',
+        });
+      }
+    };
+
+    fetchData();
+  }, [orderId, toast]);
 
   const handlePayment = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,16 +59,16 @@ const Payment = () => {
         'http://localhost:5000/api/payments',
         {
           groupOrderId: order.id,
-          montant: order.total
+          montant: order.total,
         },
         {
-          headers: { Authorization: `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}` },
         }
       );
 
       toast({
         title: 'Paiement réussi !',
-        description: 'Votre commande a été confirmée. Vous recevrez un email de confirmation.'
+        description: 'Votre commande a été confirmée. Vous recevrez un email de confirmation.',
       });
 
       navigate('/buyer/dashboard');
@@ -61,12 +76,16 @@ const Payment = () => {
       toast({
         title: 'Erreur',
         description: error.response?.data?.message || "Une erreur s'est produite",
-        variant: 'destructive'
+        variant: 'destructive',
       });
     }
 
     setLoading(false);
   };
+
+  if (!order || !user) {
+    return <div>Chargement...</div>;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -76,7 +95,7 @@ const Payment = () => {
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Finaliser la commande</h1>
           <p className="text-gray-600">
-            Sécurisez votre achat dans le groupe d'achat
+            Bonjour, {user.name}. Sécurisez votre achat dans le groupe d'achat.
           </p>
         </div>
 
@@ -215,28 +234,6 @@ const Payment = () => {
                   <p className="text-blue-700 text-sm mt-1">
                     {order.group.participants}/{order.group.maxParticipants} participants
                   </p>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="mt-6">
-              <CardHeader>
-                <CardTitle>Prochaines étapes</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3 text-sm">
-                  <div className="flex items-start space-x-2">
-                    <div className="bg-indigo-100 text-indigo-600 rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold">1</div>
-                    <p className="text-gray-600">Confirmation de paiement immédiate</p>
-                  </div>
-                  <div className="flex items-start space-x-2">
-                    <div className="bg-indigo-100 text-indigo-600 rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold">2</div>
-                    <p className="text-gray-600">Préparation de la commande par le vendeur</p>
-                  </div>
-                  <div className="flex items-start space-x-2">
-                    <div className="bg-indigo-100 text-indigo-600 rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold">3</div>
-                    <p className="text-gray-600">Expédition sous 2-3 jours ouvrés</p>
-                  </div>
                 </div>
               </CardContent>
             </Card>

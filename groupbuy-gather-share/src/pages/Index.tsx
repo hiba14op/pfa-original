@@ -41,7 +41,7 @@ export default function Index() {
               <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
           </Link>
-          <Link to="/groups">
+          <Link to="/group-list">
             <Button size="lg" variant="outline" className="px-8 py-3">
               Parcourir les groupes
             </Button>

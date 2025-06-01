@@ -13,7 +13,7 @@ router.post('/:orderId/items', verifyToken, (req, res) => {
     return res.status(400).json({ message: "productId et quantity sont requis." });
   }
 
-  const sql = `INSERT INTO OrderItem (orderId, userId, productId, quantity) VALUES (?, ?, ?, ?)`;
+  const sql = `INSERT INTO Orderitem (orderItemId,orderId, userId, productId, quantity) VALUES (?,?, ?, ?, ?)`;
 
   db.query(sql, [orderId, userId, productId, quantity], (err) => {
     if (err) return res.status(500).json({ error: err });
@@ -23,12 +23,13 @@ router.post('/:orderId/items', verifyToken, (req, res) => {
 
 // GET /api/orders/:orderId/my-items — Voir les produits commandés par l’utilisateur dans ce groupe
 router.get('/:orderId/my-items', verifyToken, (req, res) => {
+
   const orderId = req.params.orderId;
   const userId = req.user.userId;
 
   const sql = `
     SELECT oi.*, p.name, p.unitPrice 
-    FROM OrderItem oi
+    FROM Orderitem oi
     JOIN product p ON oi.productId = p.productId
     WHERE oi.orderId = ? AND oi.userId = ?
   `;
@@ -39,7 +40,7 @@ router.get('/:orderId/my-items', verifyToken, (req, res) => {
   });
 });
 // GET /api/orders — voir toutes les commandes de l'utilisateur
-router.get('/', verifyToken, (req, res) => {
+router.get('/my', verifyToken, (req, res) => {
   const userId = req.user.userId;
 
   const sql = `SELECT * FROM orders WHERE userId = ? ORDER BY orderDate DESC`;

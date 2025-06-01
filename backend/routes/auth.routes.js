@@ -82,7 +82,7 @@ router.post('/login', (req, res) => {
         email: user.email,
         role: user.role
       },
-      'secret_jwt_key', // remplace par process.env.JWT_SECRET pour production
+      process.env.JWT_SECRET, // remplace par process.env.JWT_SECRET pour production
       { expiresIn: '1h' }
     );
 

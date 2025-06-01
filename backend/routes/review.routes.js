@@ -12,7 +12,7 @@ router.post('/', verifyToken, (req, res) => {
     return res.status(400).json({ message: "supplierId et rating sont obligatoires." });
   }
 
-  const sql = `INSERT INTO Review (userId, supplierId, rating, comment) VALUES (?, ?, ?, ?)`;
+  const sql = `INSERT INTO Review (userId, supplierId, rating, comment,creationDate) VALUES (?, ?, ?,? ,?)`;
 
   db.query(sql, [userId, supplierId, rating, comment || ''], (err) => {
     if (err) return res.status(500).json({ error: err });

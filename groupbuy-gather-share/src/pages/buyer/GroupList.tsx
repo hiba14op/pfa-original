@@ -1,19 +1,31 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 
+interface Group {
+  orderId: number;
+  productName: string;
+  totalAmount: number;
+  deliveryAddress: string;
+  currentGroupSize: number;
+  maxGroupSize: number;
+  isJoined?: boolean; // Ajout de la propriété isJoined
+}
 
 interface GroupListProps {
   fetchData: () => void;
 }
 
 const GroupList: React.FC<GroupListProps> = ({ fetchData }) => {
-
-  const [groups, setGroups] = useState([]);
+  const [groups, setGroups] = useState<Group[]>([]);
 
   useEffect(() => {
-    axios.get('http://localhost:5000/api/grouporder')
+    axios.get('http://localhost:5000/api/grouporder/open', {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('token')}`
+      }
+    })
       .then(res => setGroups(res.data))
-      .catch(err => console.error('Erreur chargement groupes :', err));
+      .catch(err => console.error('❌ Erreur chargement groupes :', err));
   }, []);
 
   const handleJoin = async (orderId: number) => {
@@ -24,7 +36,7 @@ const GroupList: React.FC<GroupListProps> = ({ fetchData }) => {
         }
       });
       alert("✅ Groupe rejoint !");
-      fetchData();
+      fetchData(); // recharge les données parent si nécessaire
     } catch (err: any) {
       alert(err.response?.data?.message || "❌ Erreur lors de la participation");
     }
@@ -33,22 +45,28 @@ const GroupList: React.FC<GroupListProps> = ({ fetchData }) => {
   return (
     <div className="p-4">
       <h2 className="text-xl font-bold mb-4">Groupes Disponibles</h2>
-      {groups.map(group => (
-        <div key={group.orderId} className="border p-3 mb-2 rounded shadow">
-          <p><strong>Produit :</strong> {group.productName}</p>
-          <p><strong>Montant :</strong> {group.totalAmount} €</p>
-          <p><strong>Adresse :</strong> {group.deliveryAddress}</p>
-          <p><strong>Places :</strong> {group.currentGroupSize} / {group.maxGroupSize}</p>
-          <p><strong>Produit :</strong> {group.productName || 'Non spécifié'}</p>
-
-          <button
-            className="mt-2 bg-green-500 text-white px-3 py-1 rounded"
-            onClick={() => handleJoin(group.orderId)}
-          >
-            Rejoindre
-          </button>
-        </div>
-      ))}
+      {groups.length === 0 ? (
+        <p>Aucun groupe disponible pour l'instant.</p>
+      ) : (
+        groups.map(group => (
+          <div key={group.orderId} className="border p-3 mb-2 rounded shadow bg-white">
+            <p><strong>Produit :</strong> {group.productName || 'Non spécifié'}</p>
+            <p><strong>Montant :</strong> {group.totalAmount} €</p>
+            <p><strong>Adresse :</strong> {group.deliveryAddress || 'Non spécifiée'}</p>
+            <p><strong>Places :</strong> {group.currentGroupSize} / {group.maxGroupSize}</p>
+                {group.isJoined ? (
+              <p className="text-green-500 font-bold mt-2">Vous avez déjà rejoint ce groupe</p>
+            ) : (
+            <button
+              className="mt-2 bg-green-500 text-white px-3 py-1 rounded"
+              onClick={() => handleJoin(group.orderId)}
+            >
+              Rejoindre
+            </button>
+            )}
+          </div>
+        ))
+      )}
     </div>
   );
 };

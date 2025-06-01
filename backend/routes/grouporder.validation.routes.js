@@ -3,6 +3,7 @@ const router = express.Router();
 const db = require('../db');
 const verifyToken = require('../middleware/auth');
 const checkRole = require('../middleware/checkRole'); // middleware admin/vendeur
+const axios = require('axios');
 
 // ✅ Route pour valider une commande groupée (vendeur ou admin)
 router.put('/:orderId/validate', verifyToken, checkRole(['admin', 'vendeur']), (req, res) => {
@@ -28,7 +29,7 @@ router.put('/:orderId/validate', verifyToken, checkRole(['admin', 'vendeur']), (
       const message = `Votre commande groupée #${orderId} a été validée !`;
       const notifSql = `
         INSERT INTO Notification (userId, message)
-        SELECT userId, ? FROM GroupParticipation WHERE orderId = ?
+        SELECT userId, ? FROM Groupparticipation WHERE orderId = ?
       `;
       db.query(notifSql, [message, orderId], (err3) => {
         if (err3) return res.status(500).json({ error: err3 });
@@ -37,6 +38,11 @@ router.put('/:orderId/validate', verifyToken, checkRole(['admin', 'vendeur']), (
       });
     });
   });
+});
+
+// Exemple de route
+router.get('/validate', (req, res) => {
+  res.send('Validation route');
 });
 
 module.exports = router;

@@ -35,7 +35,7 @@ export default function SellerDashboard() {
     revenue: 0,
     pendingOrders: 0,
   })
-  const [myGroups, setMyGroups] = useState<any[]>([])
+  const [mesGroupes, setMesGroupes] = useState<any[]>([])
   const [pendingOrders, setPendingOrders] = useState<any[]>([])
   const [recentNeeds, setRecentNeeds] = useState<any[]>([])
 
@@ -57,7 +57,7 @@ export default function SellerDashboard() {
           'http://localhost:5000/api/seller/groups',
           config
         )
-        setMyGroups(groupsRes.data.groups || [])
+         setMesGroupes(groupsRes.data.groups || [])
 
         // 3. Commandes en attente
         const ordersRes = await axios.get(
@@ -196,7 +196,7 @@ export default function SellerDashboard() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                {myGroups.map((group) => (
+                {mesGroupes.map((group) => (
                   <div
                     key={group.id}
                     className="mb-4 p-4 border rounded-lg"

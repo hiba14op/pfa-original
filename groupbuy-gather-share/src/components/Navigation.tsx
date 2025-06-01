@@ -1,4 +1,3 @@
-
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -52,9 +51,9 @@ export const Navigation = () => {
             
             {isAuthenticated && (
               <div className="hidden md:flex ml-10 space-x-8">
-                <Link to="/groups" className="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium">
-                  Groupes
-                </Link>
+              <Link to="/group-list" className="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium">
+  Groupes
+</Link>
                 {user?.role === 'buyer' && (
                   <>
                     <Link to="/buyer/dashboard" className="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium">
@@ -62,6 +61,9 @@ export const Navigation = () => {
                     </Link>
                     <Link to="/buyer/needs/create" className="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium">
                       Exprimer un besoin
+                    </Link>
+                    <Link to="/buyer/create-group" className="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium">
+                      Créer un groupe
                     </Link>
                   </>
                 )}
@@ -73,7 +75,7 @@ export const Navigation = () => {
                     <Link to="/seller/needs" className="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium">
                       Besoins
                     </Link>
-                    <Link to="/groups/create" className="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium">
+                    <Link to="/seller/create-group" className="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium">
                       Créer un groupe
                     </Link>
                   </>

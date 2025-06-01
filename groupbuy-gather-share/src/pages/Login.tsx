@@ -22,7 +22,7 @@ const Login = () => {
       if (user.role === 'seller') {
         navigate('/seller/dashboard');
       } else if (user.role === 'buyer') {
-        navigate('/buyer/home'); // ✅ redirection vers BuyerLayout
+        navigate('/buyer/dashboard');
       } else if (user.role === 'admin') {
         navigate('/admin/dashboard');
       } else {

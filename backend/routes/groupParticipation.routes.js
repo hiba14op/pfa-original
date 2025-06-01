@@ -3,13 +3,39 @@ const router = express.Router();
 const db = require('../db');
 const verifyToken = require('../middleware/auth');
 
-// POST /api/groupParticipation/:orderId/join — Rejoindre un groupe d’achat
+
+// GET /api/groupparticipation/my — Obtenir les groupes que l'utilisateur a rejoints
+router.get('/my', verifyToken, (req, res) => {
+  const userId = req.user.userId;
+
+  console.log(" Récupération des groupes pour userId:", userId); // debug
+
+  const sql = `
+    SELECT g.* 
+    FROM grouporder g
+    JOIN groupparticipation gp ON g.orderId = gp.orderId
+    WHERE gp.userId = ?
+  `;
+
+  db.query(sql, [userId], (err, results) => {
+    if (err) {
+      console.error(" Erreur SQL (mes groupes):", err);
+      return res.status(500).json({ error: err });
+    }
+
+    console.log("Groupes trouvés :", results); // debug
+    return res.status(200).json(results);
+  });
+});
+
+
+//  POST /api/groupparticipation/:orderId/join — Rejoindre un groupe d’achat
 router.post('/:orderId/join', verifyToken, (req, res) => {
   const orderId = req.params.orderId;
   const userId = req.user?.userId;
 
-  console.log("🔍 Tentative de rejoindre groupe");
-  console.log("👉 Reçu : orderId =", orderId, "| userId =", userId);
+  console.log(" Tentative de rejoindre groupe");
+  console.log(" Reçu : orderId =", orderId, "| userId =", userId);
 
   if (!userId || !orderId) {
     return res.status(400).json({ message: "Paramètres manquants" });
@@ -20,21 +46,21 @@ router.post('/:orderId/join', verifyToken, (req, res) => {
 
   db.query(checkGroupSql, [orderId], (err, results) => {
     if (err) {
-      console.error("❌ Erreur SQL (groupe) :", err);
+      console.error(" Erreur SQL (groupe) :", err);
       return res.status(500).json({ error: err });
     }
 
     if (results.length === 0) {
-      console.log("🚫 Groupe non trouvé ou fermé");
+      console.log(" Groupe non trouvé ou fermé");
       return res.status(404).json({ message: "Groupe non trouvé ou fermé" });
     }
 
     const group = results[0];
-    console.log("✅ Groupe trouvé :", group);
+    console.log(" Groupe trouvé :", group);
 
     // 2. Vérifier si le groupe est plein
     if (group.currentGroupSize >= group.maxGroupSize) {
-      console.log("🚫 Groupe complet");
+      console.log(" Groupe complet");
       return res.status(400).json({ message: "Groupe déjà complet" });
     }
 
@@ -43,12 +69,12 @@ router.post('/:orderId/join', verifyToken, (req, res) => {
 
     db.query(checkParticipationSql, [orderId, userId], (err, participation) => {
       if (err) {
-        console.error("❌ Erreur SQL (vérif participation) :", err);
+        console.error(" Erreur SQL (vérif participation) :", err);
         return res.status(500).json({ error: err });
       }
 
       if (participation.length > 0) {
-        console.log("⚠️ Déjà membre du groupe");
+        console.log(" Déjà membre du groupe");
         return res.status(400).json({ message: "Vous avez déjà rejoint ce groupe" });
       }
 
@@ -57,50 +83,49 @@ router.post('/:orderId/join', verifyToken, (req, res) => {
 
       db.query(insertParticipationSql, [orderId, userId], (err) => {
         if (err) {
-          console.error("❌ Erreur SQL (insert participation) :", err);
+          console.error(" Erreur SQL (insert participation) :", err);
           return res.status(500).json({ error: err });
         }
 
-        console.log("✅ Participation ajoutée avec succès");
+        console.log(" Participation ajoutée avec succès");
 
         // 5. Incrémenter la taille du groupe
         const updateGroupSql = `UPDATE grouporder SET currentGroupSize = currentGroupSize + 1 WHERE orderId = ?`;
 
         db.query(updateGroupSql, [orderId], (err) => {
           if (err) {
-            console.error("❌ Erreur SQL (update groupe) :", err);
+            console.error("Erreur SQL (update groupe) :", err);
             return res.status(500).json({ error: err });
           }
 
-          console.log("✅ Taille du groupe mise à jour");
-          console.log("✅ Taille du groupe mise à jour");
+          console.log(" Taille du groupe mise à jour");
 
-// 6. Enregistrer une commande dans orderitem
-const getProductInfoSql = `SELECT productName, totalAmount FROM grouporder WHERE orderId = ?`;
-db.query(getProductInfoSql, [orderId], (err, rows) => {
-  if (err) {
-    console.error("❌ Erreur SQL (récup produit):", err);
-    return res.status(500).json({ error: err });
-  }
+          // 6. Enregistrer une commande dans orderitem
+          const getProductInfoSql = `SELECT productName, totalAmount FROM grouporder WHERE orderId = ?`;
+          db.query(getProductInfoSql, [orderId], (err, rows) => {
+            if (err) {
+              console.error(" Erreur SQL (récup produit):", err);
+              return res.status(500).json({ error: err });
+            }
 
-  const { productName, totalAmount } = rows[0];
+            const { productName, totalAmount } = rows[0];
 
-  const insertOrderSql = `INSERT INTO orderitem (orderId, userId, productName, quantity, unitPrice, status) VALUES (?, ?, ?, ?, ?, 'en cours')`;
+            const insertOrderSql = `
+              INSERT INTO orderitem (orderId, userId, productName, quantity, unitPrice, status)
+              VALUES (?, ?, ?, ?, ?, 'en cours')
+            `;
 
-  db.query(insertOrderSql, [orderId, userId, productName, 1, totalAmount], (err) => {
-    if (err) {
-      console.error("❌ Erreur SQL (ajout commande):", err);
-      return res.status(500).json({ error: err });
-    }
+            db.query(insertOrderSql, [orderId, userId, productName, 1, totalAmount], (err) => {
+              if (err) {
+                console.error(" Erreur SQL (ajout commande):", err);
+                return res.status(500).json({ error: err });
+              }
 
-    console.log("✅ Commande ajoutée dans orderitem");
-    return res.status(200).json({ message: "Vous avez rejoint le groupe et la commande a été enregistrée !" });
-  });
-});
-
-          return res.status(200).json({ message: "Vous avez rejoint le groupe avec succès" });
+              console.log(" Commande ajoutée dans orderitem");
+              return res.status(200).json({ message: "Vous avez rejoint le groupe et la commande a été enregistrée !" });
+            });
+          });
         });
-        
       });
     });
   });

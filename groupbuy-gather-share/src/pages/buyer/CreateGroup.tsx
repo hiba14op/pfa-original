@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
 
 const CreateGroup = () => {
@@ -12,6 +12,7 @@ const CreateGroup = () => {
     deliveryAddress: '',
     image: ''
   });
+  const [needs, setNeeds] = useState<any[]>([]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -31,6 +32,25 @@ const CreateGroup = () => {
     }
   };
 
+  useEffect(() => {
+    const fetchNeeds = async () => {
+      try {
+        const token = localStorage.getItem('token')
+        const config = { headers: { Authorization: `Bearer ${token}` } }
+        const response = await axios.get(
+          'http://localhost:5000/api/buyer/needs', // API pour les acheteurs
+          config
+        )
+        setNeeds(response.data.needs || [])
+      } catch (error) {
+        // Replace this with your preferred notification/toast implementation
+        alert("Erreur : Impossible de charger les besoins des acheteurs");
+      }
+    }
+
+    fetchNeeds()
+  }, [])
+
   return (
     <div className="p-8">
       <h2 className="text-2xl font-bold mb-6">Créer un Groupe d’Achat</h2>
@@ -49,5 +69,5 @@ const CreateGroup = () => {
     </div>
   );
 };
-
 export default CreateGroup;
+

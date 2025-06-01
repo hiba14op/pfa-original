@@ -1,8 +1,8 @@
-
 const express = require('express');
 const router = express.Router(); // ✅ cette ligne doit être AVANT toute utilisation
 const db = require('../db');
 const verifyToken = require('../middleware/auth');
+const axios = require('axios'); // Ajout de l'importation d'axios
 // 🔹 Créer une commande groupée
 router.post('/', verifyToken, (req, res) => {
   const {
@@ -41,19 +41,23 @@ router.get('/', (req, res) => {
   });
 });
 // 🔹 Voir les détails d'un groupe
-router.get('/:id', (req, res) => {
-  const groupId = req.params.id;
+router.get('/open', verifyToken, (req, res) => {
+  const userId = req.user.userId;
 
   const sql = `
-    SELECT g.*, u.username, u.image AS userImage 
-    FROM grouporder g 
-    JOIN users u ON g.userId = u.userId 
-    WHERE g.orderId = ?`;
+    SELECT g.*, 
+           CASE 
+             WHEN gp.userId IS NOT NULL THEN 1 
+             ELSE 0 
+           END AS isJoined
+    FROM grouporder g
+    LEFT JOIN groupparticipation gp ON g.orderId = gp.orderId AND gp.userId = ?
+    WHERE g.status = 'ouvert';
+  `;
 
-  db.query(sql, [groupId], (err, results) => {
+  db.query(sql, [userId], (err, results) => {
     if (err) return res.status(500).json({ error: err });
-    if (results.length === 0) return res.status(404).json({ message: "Groupe non trouvé" });
-    res.json(results[0]);
+    res.json(results);
   });
 });
 // 🔹 Mettre à jour un groupe
@@ -88,14 +92,14 @@ router.delete('/:id', verifyToken, (req, res) => {
 });
 
 // 🔹 Voir les groupes auxquels l'utilisateur participe
-router.get('/my-groups', verifyToken, (req, res) => {
+router.get('/MesGroupes', verifyToken, (req, res) => {
   const userId = req.user.userId;
 
   const sql = `
-    SELECT g.*, u.username, u.image AS userImage 
+    SELECT g.*, u.username
     FROM grouporder g 
-    JOIN GroupParticipation p ON g.orderId = p.orderId 
-    JOIN users u ON g.userId = u.userId 
+    JOIN Groupparticipation p ON g.orderId = p.orderId 
+    JOIN user u ON g.userId = u.userId 
     WHERE p.userId = ?`;
 
   db.query(sql, [userId], (err, results) => {
@@ -124,7 +128,7 @@ router.post('/:id/join', verifyToken, (req, res) => {
       return res.status(400).json({ message: "Groupe déjà complet" });
     }
 
-    const checkParticipation = `SELECT * FROM GroupParticipation WHERE orderId = ? AND userId = ?`;
+    const checkParticipation = `SELECT * FROM Groupparticipation WHERE orderId = ? AND userId = ?`;
     db.query(checkParticipation, [groupId, userId], (err, result) => {
       if (err) return res.status(500).json({ error: err });
 
@@ -132,7 +136,7 @@ router.post('/:id/join', verifyToken, (req, res) => {
         return res.status(400).json({ message: "Vous avez déjà rejoint ce groupe" });
       }
 
-      const insertSql = `INSERT INTO GroupParticipation (orderId, userId) VALUES (?, ?)`;
+      const insertSql = `INSERT INTO Groupparticipation (orderId, userId) VALUES (?, ?)`;
       db.query(insertSql, [groupId, userId], (err) => {
         if (err) return res.status(500).json({ error: err });
 
@@ -146,4 +150,17 @@ router.post('/:id/join', verifyToken, (req, res) => {
   });
 });
 
+// Exemple d'utilisation d'axios pour récupérer les groupes ouverts
+// ⚠️ Ce code ne doit pas être exécuté côté backend car localStorage n'existe que dans le navigateur.
+// axios.get('http://localhost:5000/api/grouporder/open', {
+//   headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+// })
+//   .then((response) => {
+//     console.log('Groupes récupérés :', response.data);
+//   })
+//   .catch((error) => {
+//     console.error('Erreur lors de la récupération des groupes :', error.response?.data || error.message);
+//   });
+
 module.exports = router;
+

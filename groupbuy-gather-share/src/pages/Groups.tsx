@@ -20,7 +20,7 @@ const Groups = () => {
   useEffect(() => {
     const fetchGroups = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/api/grouporders');
+        const response = await axios.get('http://localhost:5000/api/grouporder/open');
         setGroups(response.data);
       } catch (error) {
         console.error("Erreur lors de la récupération des groupes:", error);
@@ -167,11 +167,12 @@ const Groups = () => {
                     </div>
                   </div>
                   <div className="flex gap-2">
-                    <Link to={`/groups/${parseInt(group.orderId)}`} className="flex-1">
+                    <Link to={`/group-list/${parseInt(group.orderId)}`} className="flex-1">
                       <Button className="w-full bg-indigo-600 hover:bg-indigo-700">
                         Voir les détails
                       </Button>
                     </Link>
+                
                   </div>
                 </CardContent>
               </Card>

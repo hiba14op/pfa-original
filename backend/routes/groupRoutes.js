@@ -6,7 +6,7 @@ router.post('/join', async (req, res) => {
     const { groupId, userId } = req.body;
     try {
         await db.query(
-            'INSERT INTO GroupParticipation (groupId, userId) VALUES (?, ?)',
+            'INSERT INTO Groupparticipation (groupId, userId) VALUES (?, ?)',
             [groupId, userId]
         );
         res.json({ message: 'Groupe rejoint avec succès !' });

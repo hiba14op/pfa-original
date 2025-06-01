@@ -57,3 +57,4 @@ router.put('/role', verifyToken, (req, res) => {
     res.status(200).json({ message: `Votre rôle est maintenant : ${newRole}` });
   });
 });
+module.exports = router;

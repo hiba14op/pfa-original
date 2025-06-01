@@ -5,10 +5,21 @@ const OrderList = () => {
   const [orders, setOrders] = useState([]);
 
   useEffect(() => {
-    axios.get('http://localhost:5000/api/orders/my', {
+    // Récupérer toutes les commandes (admin ou général)
+    axios.get('http://localhost:5000/api/orders', {
       headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
     })
-    .then(res => setOrders(res.data))
+    .then(res => {
+      if (Array.isArray(res.data)) {
+      setOrders(res.data);
+      } else if (Array.isArray(res.data.orders)) {
+      setOrders(res.data.orders);
+      } else {
+      setOrders([]);
+      }
+      // Pour debug : afficher la réponse complète dans la console
+      console.log('Réponse commandes:', res.data);
+    })
     .catch(err => console.error(err));
   }, []);
 
