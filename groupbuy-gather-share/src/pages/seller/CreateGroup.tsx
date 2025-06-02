@@ -37,7 +37,7 @@ const categories = [
   'Autres',
 ]
 
-export default function CreateGroup() {
+export default function CreateGroup({ onGroupCreated }: { onGroupCreated?: () => void }) {
   const [formData, setFormData] = useState({
     title: '',
     category: '',
@@ -55,6 +55,7 @@ export default function CreateGroup() {
   const [loading, setLoading] = useState(false)
   const { toast } = useToast()
   const navigate = useNavigate()
+  
 
   const handleChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }))
@@ -104,6 +105,8 @@ export default function CreateGroup() {
           "Votre groupe d'achat est maintenant visible par les acheteurs.",
       })
       navigate('/seller')
+      if (onGroupCreated) onGroupCreated();
+
     } catch (err) {
       console.error(err)
       toast({
@@ -117,7 +120,6 @@ export default function CreateGroup() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navbar />
       <div className="max-w-4xl mx-auto p-6">
         <h1 className="text-2xl font-bold mb-6">Créer un groupe d'achat</h1>
         <form onSubmit={handleSubmit} className="space-y-6">

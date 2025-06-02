@@ -97,8 +97,8 @@ router.post('/groups', verifyToken, (req, res) => {
     console.log("✅ Produit inséré, ID =", productId);
     
 
-    const groupSQL = `INSERT INTO grouporder (supplierId, productName, category, originalPrice, minGroupSize, maxGroupSize, endDate, productId) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
-    db.query(groupSQL, [sellerId, title, category, originalPrice, minParticipants, maxParticipants, endDate, productId], (err, groupResult) => {
+    const groupSQL = `INSERT INTO grouporder (supplierId, productName, category, originalPrice, minGroupSize, maxGroupSize, endDate, productId, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?,'En cours')`;
+    db.query(groupSQL, [sellerId, title, category, originalPrice, minParticipants, maxParticipants, endDate, productId, 'En cours'], (err, groupResult) => {
       if (err) {
         console.error("❌ Erreur création groupe :", err); // 👈 AJOUT
         return res.status(500).json({ error: "Erreur création groupe", details: err });
@@ -110,11 +110,25 @@ router.post('/groups', verifyToken, (req, res) => {
         features.forEach(f => db.query(`INSERT INTO group_features (groupId, feature) VALUES (?, ?)`, [groupId, f]));
       }
       if (Array.isArray(priceBreakdown)) {
-        priceBreakdown.forEach(t => db.query(`INSERT INTO pricing_tiers (groupId, rangeLabel, price) VALUES (?, ?, ?)`, [groupId, t.participants, t.price]));
-        console.log("📊 Tranche ajoutée :", t);
+       priceBreakdown.forEach((tranche) => {
+  const sql = `INSERT INTO pricing_tiers (groupId, rangeLabel, price) VALUES (?, ?, ?)`;
+  db.query(sql, [groupId, tranche.participants, tranche.price], (err, result) => {
+    if (err) {
+      console.error("❌ Erreur insertion tranche :", err);
+    } else {
+      console.log("📊 Tranche ajoutée :", tranche);
+    }
+  });
+});
+
       }
 
-      res.status(201).json({ message: "Groupe et produit créés avec succès", groupId });
+      res.status(201).json({
+  message: "Groupe et produit créés avec succès ✅",
+  groupId,
+  productId
+});
+
     });
   });
 });
@@ -125,9 +139,9 @@ router.get('/my-products', verifyToken, (req, res) => {
   const sellerId = req.user.userId;
 
   const sql = `
-    SELECT id, productName 
+    SELECT orderId AS id, productName  
     FROM grouporder 
-    WHERE userId = ?
+    WHERE supplierId = ?
   `;
 
   db.query(sql, [sellerId], (err, results) => {
@@ -184,6 +198,54 @@ router.put('/profile', verifyToken, (req, res) => {
   db.query(sql, [username, email, phoneNumber, address, sellerId], (err) => {
     if (err) return res.status(500).json({ error: 'Erreur serveur' });
     res.json({ message: 'Profil mis à jour avec succès' });
+  });
+});
+// 📊 Tarifs groupés des groupes créés
+router.get('/pricing', verifyToken, (req, res) => {
+  const sellerId = req.user.userId;
+
+  const sql = `
+    SELECT g.productName, pt.rangeLabel, pt.price
+    FROM pricing_tiers pt
+    JOIN grouporder g ON pt.groupId = g.orderId
+    WHERE g.supplierId = ?
+    ORDER BY g.orderId, pt.rangeLabel
+  `;
+
+  db.query(sql, [sellerId], (err, results) => {
+    if (err) {
+      console.error("❌ Erreur chargement tarifs groupés :", err);
+      return res.status(500).json({ error: "Erreur chargement tarifs groupés" });
+    }
+    res.json(results);
+  });
+});
+// ✅ Mettre à jour automatiquement les statuts des groupes
+router.put('/update-statuses', (req, res) => {
+  const now = new Date();
+
+  // Clôturer les groupes expirés
+  const closeQuery = `
+    UPDATE grouporder 
+    SET status = 'Clôturé' 
+    WHERE endDate < ? AND status = 'En cours'
+  `;
+
+  // Marquer les groupes comme complets
+  const fullQuery = `
+    UPDATE grouporder 
+    SET status = 'Complet' 
+    WHERE currentGroupSize >= maxGroupSize AND status = 'En cours'
+  `;
+
+  db.query(closeQuery, [now], (err1) => {
+    if (err1) return res.status(500).json({ error: 'Erreur cloture', details: err1 });
+
+    db.query(fullQuery, (err2) => {
+      if (err2) return res.status(500).json({ error: 'Erreur complet', details: err2 });
+
+      res.json({ message: 'Statuts mis à jour automatiquement ✅' });
+    });
   });
 });
 

@@ -4,7 +4,9 @@ import CreateGroup from '@/pages/seller/CreateGroup';
 import GroupList from './GroupList.tsx';
 import MesProduits from '@/pages/seller/MesProduits';
 import SellerOrders from '@/pages/seller/SellerOrders';
-import SellerSettings from '@/pages/seller/SellerSettings';
+import TarifsGroupes from '@/pages/seller/TarifsGroupes';
+import SellerProfile from '@/pages/seller/SellerProfile';
+
 
 
 import {
@@ -27,16 +29,20 @@ const SellerLayout = () => {
   const [stats, setStats] = useState({ products: 0, orders: 0, revenue: 0 , groups: 0});
 
   useEffect(() => {
+    axios.put("http://localhost:5000/api/seller/update-statuses")
+    .then(() => console.log("✅ Statuts des groupes mis à jour automatiquement"))
+    .catch(err => console.error("❌ Erreur mise à jour statuts :", err));
     fetchStats();
     fetchProducts();
   }, []);
   useEffect(() => {
   if (activeTab === "products") {
-    axios.get("http://localhost:5000/api/seller/products", {
+    axios.get("http://localhost:5000/api/seller/my-products", {
       headers: {
         Authorization: `Bearer ${localStorage.getItem("token")}`
       }
     })
+
     .then(res => setProducts(res.data))
     .catch(err => console.error("❌ Erreur chargement produits vendeur :", err));
   }
@@ -67,23 +73,26 @@ const fetchProducts = () => {
     { id: 'groups', label: 'Groupes Créés', icon: <Users className="w-5 h-5" /> },
     { id: 'orders', label: 'Commandes', icon: <ShoppingCart className="w-5 h-5" /> },
     { id: 'pricing', label: 'Tarifs Groupés', icon: <DollarSign className="w-5 h-5" /> },
-    { id: 'settings', label: 'Paramètres', icon: <Settings className="w-5 h-5" /> },
+    { id: 'profile', label: 'Profil', icon: <User className="w-5 h-5" /> },
     { id: 'createGroup', label: 'Créer un Groupe', icon: <Plus className="w-5 h-5" />, path: '/seller/create-group' },
+    
   ];
 
   const renderContent = () => {
     switch (activeTab) {
       case 'createGroup':
-          return <CreateGroup/>;
+  return <CreateGroup onGroupCreated={fetchStats} />;
+
       case 'groups':
           return <GroupList />;
       case 'products':
         return <MesProduits />;
+      case 'pricing':
+       return <TarifsGroupes />;
+      case 'profile':
+       return <SellerProfile />;
       case 'orders':
-        return <SellerOrders />;
-      case 'settings':
-        return <SellerSettings />;
-          
+       return <SellerOrders />;  
 
   case 'home':
     return (

@@ -6,6 +6,7 @@ interface User {
   id: string;
   email: string;
   name: string;
+  username: string;
   role: 'buyer' | 'seller' | 'admin';
 }
 
@@ -81,6 +82,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       email,
       name,
       role,
+      username: name,
     };
 
     setUser(newUser);

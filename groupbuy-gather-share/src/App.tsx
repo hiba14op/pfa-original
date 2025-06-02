@@ -29,6 +29,7 @@ import SettingsPage from "./pages/buyer/SettingsPage";
 import ProductList from "./pages/buyer/ProductList"; // ✅ Import ProductList component
 import ProtectedTest from "./pages/buyer/ProtectedTest"; // ✅ Import ProtectedTest component
 import CreateGroup from "./pages/buyer/CreateGroup";
+
 // <Routes>
 //   <Route path="/buyer/*" element={<BuyerLayout />} /> {/* ✅ le * est obligatoire */}
 // </Routes>
@@ -39,6 +40,7 @@ import SellerLayout from "./pages/seller/SellerLayout";
 import SellerDashboard from "./pages/seller/Dashboard";
 import Needs from "./pages/seller/Needs";
 import SellerCreateGroup from "./pages/seller/CreateGroup";
+
 
 // Admin
 import AdminDashboard from "./pages/admin/Dashboard";
