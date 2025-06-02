@@ -21,16 +21,15 @@ const CreateGroup = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('Form data:', form); // Vérifiez si productName est bien présent
     try {
       await axios.post('http://localhost:5000/api/grouporder', form, {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('token')}`
-      }
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`
+        }
       });
       alert('✅ Groupe créé avec succès !');
       navigate('/group-list');
-      fetchGroups();
-      // fetchGroups is not defined in this component, so this block is removed
     } catch (err: any) {
       alert('❌ Erreur : ' + (err.response?.data?.message || 'Inconnue'));
     }
@@ -47,7 +46,6 @@ const CreateGroup = () => {
         )
         setNeeds(response.data.needs || [])
       } catch (error) {
-        // Replace this with your preferred notification/toast implementation
         alert("Erreur : Impossible de charger les besoins des acheteurs");
       }
     }
@@ -59,7 +57,15 @@ const CreateGroup = () => {
     <div className="p-8">
       <h2 className="text-2xl font-bold mb-6">Créer un Groupe d’Achat</h2>
       <form onSubmit={handleSubmit} className="grid gap-4 max-w-xl">
-        <input name="productName" placeholder="Nom du produit" onChange={handleChange} required />
+       <input
+  type="text"
+  name="productName"
+  value={form.productName}
+  onChange={handleChange}
+  placeholder="Nom du produit"
+  required
+/>
+
         <input name="totalAmount" placeholder="Montant total (€)" onChange={handleChange} required />
         <input name="supplierId" placeholder="ID Fournisseur" onChange={handleChange} required />
         <input name="maxGroupSize" placeholder="Taille max" onChange={handleChange} required />

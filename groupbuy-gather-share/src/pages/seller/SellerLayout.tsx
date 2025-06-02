@@ -8,7 +8,6 @@ import TarifsGroupes from '@/pages/seller/TarifsGroupes';
 import SellerProfile from '@/pages/seller/SellerProfile';
 
 
-
 import {
   User,
   Package,
@@ -34,6 +33,8 @@ const SellerLayout = () => {
     .catch(err => console.error("❌ Erreur mise à jour statuts :", err));
     fetchStats();
     fetchProducts();
+    
+
   }, []);
   useEffect(() => {
   if (activeTab === "products") {
@@ -48,7 +49,7 @@ const SellerLayout = () => {
   }
 }, [activeTab]);
 const fetchProducts = () => {
-  axios.get("http://localhost:5000/api/seller/products", {
+axios.get("http://localhost:5000/api/seller/my-products", {
     headers: {
       Authorization: `Bearer ${localStorage.getItem("token")}`
     }
@@ -81,18 +82,17 @@ const fetchProducts = () => {
   const renderContent = () => {
     switch (activeTab) {
       case 'createGroup':
-  return <CreateGroup onGroupCreated={fetchStats} />;
-
+          return <CreateGroup onGroupCreated={fetchStats} />;
       case 'groups':
           return <GroupList />;
       case 'products':
-        return <MesProduits />;
+          return <MesProduits />;
       case 'pricing':
-       return <TarifsGroupes />;
+          return <TarifsGroupes />;
       case 'profile':
-       return <SellerProfile />;
+          return <SellerProfile />;
       case 'orders':
-       return <SellerOrders />;  
+          return <SellerOrders />;  
 
   case 'home':
     return (
@@ -185,4 +185,3 @@ const fetchProducts = () => {
 };
 
 export default SellerLayout;
-

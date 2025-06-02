@@ -83,6 +83,7 @@ export default function CreateGroup({ onGroupCreated }: { onGroupCreated?: () =>
     tiers[idx].price = price
     setPriceBreakdown(tiers)
   }
+  
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -91,9 +92,16 @@ export default function CreateGroup({ onGroupCreated }: { onGroupCreated?: () =>
       const token = localStorage.getItem('token')
       const config = { headers: { Authorization: `Bearer ${token}` } }
       const payload = {
-        ...formData,
-        priceBreakdown,
-      }
+  ...formData,
+  originalPrice: Number(formData.originalPrice),
+  minParticipants: Number(formData.minParticipants),
+  maxParticipants: Number(formData.maxParticipants),
+  priceBreakdown: priceBreakdown.map(tier => ({
+    participants: tier.participants,
+    price: parseFloat(tier.price)
+  }))
+}
+      console.log("📦 Données envoyées au backend :", payload)
       await axios.post(
         'http://localhost:5000/api/seller/groups',
         payload,

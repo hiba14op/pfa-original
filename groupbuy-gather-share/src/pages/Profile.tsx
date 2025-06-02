@@ -11,17 +11,34 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { User, Mail, Lock, Bell, CreditCard, Users } from 'lucide-react';
+import { useEffect } from 'react';
 
 const Profile = () => {
   const { user, switchRole } = useAuth();
   const { toast } = useToast();
 
   const [profileData, setProfileData] = useState({
-    name: user?.name || '',
-    email: user?.email || '',
-    phone: '+33 6 12 34 56 78',
-    address: '123 Rue de la Paix, 75001 Paris'
+    name: '',
+    email: '',
+    phone: '',
+    address: ''
   });
+  
+  useEffect(() => {
+    const fetchProfile = async () => {
+      const token = localStorage.getItem('token');
+      try {
+        const res = await axios.get('http://localhost:5000/api/users/profile', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        setProfileData(res.data);
+      } catch (error) {
+        console.error("Erreur lors du chargement du profil :", error);
+      }
+    };
+  
+    fetchProfile();
+  }, []);
 
   const [notifications, setNotifications] = useState({
     email: true,
@@ -101,6 +118,33 @@ const Profile = () => {
   const handleRoleSwitch = async () => {
     const newRole = user?.role === 'buyer' ? 'seller' : 'buyer';
 
+    
+      try {
+        const token = localStorage.getItem("token");
+        await axios.delete(`http://localhost:5000/api/users/${user?.id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+    
+        toast({
+          title: "Compte supprimé",
+          description: "Votre compte a été supprimé avec succès.",
+        });
+    
+        // Optionnel : redirige ou déconnecte
+        window.location.href = "/";
+      } catch (error: any) {
+        toast({
+          title: "Erreur",
+          description: error.response?.data?.message || "Impossible de supprimer le compte.",
+          variant: "destructive",
+        });
+      }
+    };
+
+    const handleDeleteAccount = async () => {
+      const confirmed = window.confirm("Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est irréversible.");
+      if (!confirmed) return;
+
     try {
       const token = localStorage.getItem('token');
       await axios.put('http://localhost:5000/api/users/role', { role: newRole }, {
@@ -142,9 +186,89 @@ const Profile = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navigation />
-      {/* Le contenu existant reste identique... formulaire, onglets, inputs, etc. */}
-    </div>
+  <Navigation />
+
+  <div className="max-w-4xl mx-auto py-10 px-4">
+    <Card>
+      <CardHeader>
+        <CardTitle>Mon Profil</CardTitle>
+        <CardDescription>Modifier vos informations personnelles ou votre mot de passe</CardDescription>
+      </CardHeader>
+
+      <CardContent>
+        <Tabs defaultValue="profile" className="w-full">
+          <TabsList>
+            <TabsTrigger value="profile">Informations personnelles</TabsTrigger>
+            <TabsTrigger value="password">Changer le mot de passe</TabsTrigger>
+          </TabsList>
+
+          {/* Onglet Informations personnelles */}
+          <TabsContent value="profile" className="mt-4 space-y-4">
+            <form onSubmit={handleProfileUpdate} className="space-y-4">
+              <div>
+                <Label>Nom</Label>
+                <Input value={profileData.name} onChange={e => setProfileData({ ...profileData, name: e.target.value })} />
+              </div>
+              <div>
+                <Label>Email</Label>
+                <Input value={profileData.email} onChange={e => setProfileData({ ...profileData, email: e.target.value })} />
+              </div>
+              <div>
+                <Label>Téléphone</Label>
+                <Input value={profileData.phone} onChange={e => setProfileData({ ...profileData, phone: e.target.value })} />
+              </div>
+              <div>
+                <Label>Adresse</Label>
+                <Input value={profileData.address} onChange={e => setProfileData({ ...profileData, address: e.target.value })} />
+              </div>
+
+              <div className="flex justify-between items-center pt-4">
+                <Button type="submit" disabled={loading}>
+                  {loading ? "Sauvegarde..." : "Sauvegarder"}
+                </Button>
+                <Badge className={getRoleColor(user?.role || '')}>
+                  {getRoleName(user?.role || '')}
+                </Badge>
+              </div>
+            </form>
+            <Button
+                 variant="destructive"
+                 className="w-full"
+                 onClick={handleDeleteAccount}
+            >
+                 Supprimer mon compte
+            </Button>
+
+
+          </TabsContent>
+
+          {/* Onglet Mot de passe */}
+          <TabsContent value="password" className="mt-4 space-y-4">
+            <form onSubmit={handlePasswordChange} className="space-y-4">
+              <div>
+                <Label>Mot de passe actuel</Label>
+                <Input type="password" value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} />
+              </div>
+              <div>
+                <Label>Nouveau mot de passe</Label>
+                <Input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} />
+              </div>
+              <div>
+                <Label>Confirmer le nouveau mot de passe</Label>
+                <Input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} />
+              </div>
+
+              <Button type="submit" disabled={loading}>
+                {loading ? "Modification..." : "Changer le mot de passe"}
+              </Button>
+            </form>
+          </TabsContent>
+        </Tabs>
+      </CardContent>
+    </Card>
+  </div>
+</div>
+
   );
 };
 

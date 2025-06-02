@@ -49,13 +49,13 @@ axios.get(`${API_URL}/groupparticipation/my`, {
               className="p-4 border rounded-lg shadow bg-white"
             >
               <h2 className="font-semibold text-lg">
-                Produit : {group.productName || 'Non spécifié'}
+                Produit : {group.productName}
               </h2>
               <p>Montant : {group.totalAmount} €</p>
               <p>Adresse : {group.deliveryAddress || 'Inconnue'}</p>
               <p>
                 Places : {group.currentGroupSize} / {group.maxGroupSize}
-              </p>
+              </p>\
             </div>
           ))}
         </div>

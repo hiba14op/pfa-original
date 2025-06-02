@@ -11,11 +11,15 @@ import {
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { ShoppingCart, Users, Settings, LogOut, User } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 
 export const Navigation = () => {
   const { user, isAuthenticated, logout, switchRole } = useAuth();
   const navigate = useNavigate();
-
+  const location = useLocation();
+  const isProfilePage = location.pathname === "/profile";
+  
   const handleLogout = () => {
     logout();
     navigate('/');
@@ -56,15 +60,21 @@ export const Navigation = () => {
 </Link>
                 {user?.role === 'buyer' && (
                   <>
-                    <Link to="/buyer/dashboard" className="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium">
+                    <Link to="/buyer" className="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium">
                       Tableau de bord
                     </Link>
-                    <Link to="/buyer/needs/create" className="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium">
+                    <Link to="/buyer/needs" className="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium">
                       Exprimer un besoin
                     </Link>
                     <Link to="/buyer/create-group" className="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium">
                       Créer un groupe
                     </Link>
+                    <Link
+  to="/buyer/mes-besoins-exprimes"
+  className="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium"
+>
+  Mes Besoins Exprimés
+</Link>
                   </>
                 )}
                 {user?.role === 'seller' && (
@@ -72,12 +82,7 @@ export const Navigation = () => {
                     <Link to="/seller/dashboard" className="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium">
                       Tableau de bord
                     </Link>
-                    <Link to="/seller/needs" className="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium">
-                      Besoins
-                    </Link>
-                    <Link to="/seller/create-group" className="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium">
-                      Créer un groupe
-                    </Link>
+                    
                   </>
                 )}
                 {user?.role === 'admin' && (
@@ -115,7 +120,7 @@ export const Navigation = () => {
                       <p className="font-medium">{user?.name}</p>
                       <p className="w-[200px] truncate text-sm text-muted-foreground">
                         {user?.email}
-                      </p>
+                      </p>p
                       <Badge className={`${getRoleColor(user?.role || '')} text-white w-fit`}>
                         {getRoleName(user?.role || '')}
                       </Badge>

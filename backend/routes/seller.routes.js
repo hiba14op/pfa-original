@@ -6,24 +6,51 @@ const verifyToken = require('../middleware/auth');
 // 📊 Statistiques vendeur
 router.get('/stats', verifyToken, (req, res) => {
   const sellerId = req.user.userId;
+  console.log("✅ [GET /stats] sellerId =", sellerId);
+
   const stats = { products: 0, orders: 0, revenue: 0, groups: 0 };
 
-  db.query('SELECT COUNT(*) AS count FROM product WHERE supplierId = ?', [sellerId], (err, result1) => {
-    if (err) return res.status(500).json({ error: err });
+  console.log("🔍 Étape 1 : Récupération des produits...");
+  db.query('SELECT COUNT(*) AS count FROM grouporder WHERE supplierId = ?', [sellerId], (err, result1) => {
+    if (err) {
+      console.error("❌ Erreur dans stats produits", err);
+      return res.status(500).json({ error: err });
+    }
     stats.products = result1[0].count;
 
-    db.query('SELECT COUNT(*) AS count FROM orders WHERE supplierId = ?', [sellerId], (err, result2) => {
-      if (err) return res.status(500).json({ error: err });
-      stats.orders = result2[0].count;
-
-      db.query('SELECT SUM(totalAmount) AS total FROM orders WHERE supplierId = ?', [sellerId], (err, result3) => {
-        if (err) return res.status(500).json({ error: err });
+    db.query(`
+  SELECT COUNT(*) AS count 
+  FROM orders o
+  JOIN grouporder g ON o.groupId = g.orderId
+  WHERE g.supplierId = ?
+`, [sellerId], (err, result2) => {
+  if (err) {
+    console.error("❌ Erreur dans stats commandes :", err);
+    return res.status(500).json({ error: err });
+  }
+  stats.orders = result2[0].count;
+      console.log("🔍 Étape 3 : Récupération du revenu...");
+      db.query(`
+  SELECT SUM(o.amount) AS total 
+  FROM orders o
+  JOIN grouporder g ON o.groupId = g.orderId
+  WHERE g.supplierId = ?
+`, [sellerId], (err, result3) => {
+   if (err) {
+          console.error("❌ Erreur dans stats revenus", err);
+          return res.status(500).json({ error: err });
+        }
         stats.revenue = result3[0].total || 0;
 
+        console.log("🔍 Étape 4 : Récupération des groupes créés...");
         db.query('SELECT COUNT(*) AS count FROM grouporder WHERE supplierId = ?', [sellerId], (err, result4) => {
-          if (err) return res.status(500).json({ error: err });
+          if (err) {
+            console.error("❌ Erreur dans stats groupes", err);
+            return res.status(500).json({ error: err });
+          }
           stats.groups = result4[0].count;
-          stats.products = stats.groups;
+
+          console.log("✅ Statistiques finales :", stats);
           res.json(stats);
         });
       });
@@ -111,6 +138,7 @@ router.post('/groups', verifyToken, (req, res) => {
       }
       if (Array.isArray(priceBreakdown)) {
        priceBreakdown.forEach((tranche) => {
+        console.log("👉 Insertion tier", tranche, "pour groupId =", groupId);
   const sql = `INSERT INTO pricing_tiers (groupId, rangeLabel, price) VALUES (?, ?, ?)`;
   db.query(sql, [groupId, tranche.participants, tranche.price], (err, result) => {
     if (err) {

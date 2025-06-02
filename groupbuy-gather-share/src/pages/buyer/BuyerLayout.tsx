@@ -1,22 +1,20 @@
-import React, { useEffect, useState } from "react";
-import { User, ShoppingCart, MessageCircle, Users, Star, Search, Plus, Settings } from 'lucide-react';
-import { NavLink, Outlet } from 'react-router-dom';
+import React from "react";
+import { User, ShoppingCart, MessageCircle, Users, Star, Plus, Settings, Edit, List } from "lucide-react";
+import { NavLink, Outlet } from "react-router-dom";
 
 const menuItems = [
-  { id: 'home', label: 'Accueil', icon: <User className="w-5 h-5" />, path: '/buyer' },
-  { id: 'needs', label: 'Mes Besoins', icon: <Search className="w-5 h-5" />, path: '/buyer/needs' },
-  { id: 'groups', label: 'Mes Groupes', icon: <Users className="w-5 h-5" />, path: '/buyer/MesGroupes' },
-  { id: 'orders', label: 'Commandes', icon: <ShoppingCart className="w-5 h-5" />, path: '/buyer/orders' },
-  { id: 'reviews', label: 'Mes Avis', icon: <Star className="w-5 h-5" />, path: '/buyer/reviews' },
-  { id: 'messages', label: 'Messages', icon: <MessageCircle className="w-5 h-5" />, path: '/buyer/messages' },
-  { id: 'settings', label: 'Paramètres', icon: <Settings className="w-5 h-5" />, path: '/buyer/settings' },
-  { id: 'createGroup', label: 'Créer un Groupe', icon: <Plus className="w-5 h-5" />, path: '/buyer/create-group' },
+  { id: "home", label: "Accueil", icon: <User className="w-5 h-5" />, path: "/buyer" },
+  { id: "groups", label: "Mes Groupes", icon: <Users className="w-5 h-5" />, path: "/buyer/MesGroupes" },
+  { id: "expressedNeeds", label: "Mes Besoins Exprimés", icon: <List className="w-5 h-5" />, path: "/buyer/mes-besoins-exprimes" }, // Remplacement ici
+  { id: "orders", label: "Commandes", icon: <ShoppingCart className="w-5 h-5" />, path: "/buyer/orders" },
+  { id: "reviews", label: "Mes Avis", icon: <Star className="w-5 h-5" />, path: "/buyer/reviews" },
+  { id: "messages", label: "Messages", icon: <MessageCircle className="w-5 h-5" />, path: "/buyer/messages" },
+  { id: "settings", label: "Paramètres", icon: <Settings className="w-5 h-5" />, path: "/buyer/settings" },
+  { id: "createGroup", label: "Créer un Groupe", icon: <Plus className="w-5 h-5" />, path: "/buyer/create-group" },
+  { id: "expressNeed", label: "Exprimer un Besoin", icon: <Edit className="w-5 h-5" />, path: "/buyer/needs" },
 ];
 
-
-
 const BuyerLayout = () => {
-
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="flex">
@@ -33,7 +31,7 @@ const BuyerLayout = () => {
                 to={item.path}
                 className={({ isActive }) =>
                   `w-full flex items-center gap-3 px-6 py-3 text-left hover:bg-gray-50 transition-colors ${
-                    isActive ? 'bg-blue-50 text-blue-600 border-r-2 border-blue-600' : 'text-gray-700'
+                    isActive ? "bg-blue-50 text-blue-600 border-r-2 border-blue-600" : "text-gray-700"
                   }`
                 }
               >

@@ -29,6 +29,7 @@ import SettingsPage from "./pages/buyer/SettingsPage";
 import ProductList from "./pages/buyer/ProductList"; // ✅ Import ProductList component
 import ProtectedTest from "./pages/buyer/ProtectedTest"; // ✅ Import ProtectedTest component
 import CreateGroup from "./pages/buyer/CreateGroup";
+import MesBesoinsExprimes from './pages/buyer/MesBesoinsExprimes';
 
 // <Routes>
 //   <Route path="/buyer/*" element={<BuyerLayout />} /> {/* ✅ le * est obligatoire */}
@@ -38,7 +39,7 @@ import CreateGroup from "./pages/buyer/CreateGroup";
 // Seller
 import SellerLayout from "./pages/seller/SellerLayout";
 import SellerDashboard from "./pages/seller/Dashboard";
-import Needs from "./pages/seller/Needs";
+import Needs from './pages/seller/Needs';
 import SellerCreateGroup from "./pages/seller/CreateGroup";
 
 
@@ -123,6 +124,14 @@ export default function App() {
   <Route path="products" element={<SettingsPage />} /> {/* Liste des produits */}
   <Route path="settings" element={<SettingsPage />} /> {/* Paramètres */}
   <Route path="create-group" element={<CreateGroup />} /> {/* Créer un Groupe */}
+  <Route
+  path="mes-besoins-exprimes"
+  element={
+    <ProtectedRoute allowedRoles={["buyer"]}>
+      <MesBesoinsExprimes />
+    </ProtectedRoute>
+  }
+/> {/* Mes besoins exprimés */}
 
   {/* Page de test protégée */}
 
@@ -140,7 +149,7 @@ export default function App() {
           <Route index element={<SellerDashboard />} />
           <Route path="dashboard" element={<SellerDashboard />} />
           <Route path="needs" element={<Needs />} />
-          <Route path="groups/create" element={<SellerCreateGroup />} />
+          <Route path="create-group" element={<SellerCreateGroup />} />
           <Route path="group/:id" element={<GroupDetail />} />
 
 

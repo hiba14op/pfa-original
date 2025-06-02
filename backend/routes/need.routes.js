@@ -22,16 +22,18 @@ router.post('/', verifyToken, (req, res) => {
 });
 
 // 📍 GET /api/needs : consulter tous les besoins
-router.get('/', (req, res) => {
-const sql = `SELECT n.*
-             FROM needs n 
-             JOIN user u ON n.userId = u.userId 
-             ORDER BY n.needId DESC`;
+router.get('/', verifyToken, (req, res) => {
+  
+  const userId = req.user.userId;
 
+  const sql = `
+    SELECT * FROM needs
+    WHERE userId = ?
+  `;
 
-  db.query(sql, (err, results) => {
+  db.query(sql, [userId], (err, results) => {
     if (err) return res.status(500).json({ error: err });
-    res.status(200).json(results);
+    res.json(results);
   });
 });
 

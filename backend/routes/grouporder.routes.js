@@ -16,16 +16,19 @@ router.post('/', verifyToken, (req, res) => {
     productName
   } = req.body;
 
+  console.log(req.body); // Vérifiez si productName est bien reçu
+
   const userId = req.user.userId;
 
   const sql = `
     INSERT INTO grouporder 
-    (status, totalAmount, supplierId, maxGroupSize, minGroupSize, currentGroupSize, deliveryAddress, userId, image) 
-    VALUES (?, ?, ?, ?, ?, 0, ?, ?, ?)`;
+    (status, totalAmount, supplierId, maxGroupSize, minGroupSize, currentGroupSize, deliveryAddress, userId, image, productName) 
+    VALUES (?, ?, ?, ?, ?, 0, ?, ?, ?, ?)
+  `;
 
   db.query(
     sql,
-    [status, totalAmount, supplierId, maxGroupSize, minGroupSize, deliveryAddress, userId, image],
+    [status, totalAmount, supplierId, maxGroupSize, minGroupSize, deliveryAddress, userId, image, productName],
     (err) => {
       if (err) return res.status(500).json({ error: err });
       res.status(201).json({ message: "Groupe créé avec succès" });
