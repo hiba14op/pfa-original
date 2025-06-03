@@ -22,7 +22,7 @@ import {
 } from '@/components/ui/select'
 import { useToast } from '@/hooks/use-toast'
 import { Plus, Minus } from 'lucide-react'
-
+import { useEffect } from 'react';
 const categories = [
   'Électronique',
   'Informatique',
@@ -125,6 +125,26 @@ export default function CreateGroup({ onGroupCreated }: { onGroupCreated?: () =>
     }
     setLoading(false)
   }
+  
+
+useEffect(() => {
+  const min = parseInt(formData.minParticipants);
+  const max = parseInt(formData.maxParticipants);
+
+  if (!isNaN(min) && !isNaN(max) && min < max) {
+    const interval = Math.floor((max - min + 1) / 3);
+    const tiers = [];
+
+    for (let i = 0; i < 3; i++) {
+      const start = min + i * interval;
+      const end = i === 2 ? max : start + interval - 1;
+      tiers.push({ participants: `${start}-${end}`, price: '' });
+    }
+
+    setPriceBreakdown(tiers);
+  }
+}, [formData.minParticipants, formData.maxParticipants]);
+
 
   return (
     <div className="min-h-screen bg-gray-50">

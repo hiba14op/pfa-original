@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const db = require('../db');
+const db = require('../db')();
 const verifyToken = require('../middleware/auth');
 
 // POST /api/orders/:orderId/items — Ajouter un produit à une commande de groupe

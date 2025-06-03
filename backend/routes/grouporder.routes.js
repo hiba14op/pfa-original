@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router(); // ✅ cette ligne doit être AVANT toute utilisation
-const db = require('../db');
+const db = require('../db')();
 const verifyToken = require('../middleware/auth');
 const axios = require('axios'); // Ajout de l'importation d'axios
 // 🔹 Créer une commande groupée

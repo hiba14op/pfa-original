@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const db = require('../db');
+const db = require('../db')();
 
 // 🔹 GET besoins de l'utilisateur
 router.get('/needs', (req, res) => {
