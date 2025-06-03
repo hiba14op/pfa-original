@@ -46,12 +46,12 @@ useEffect(() => {
       
       const [statsRes, groupsRes, ordersRes, needsRes] = await Promise.all([
         axios.get(`http://localhost:5000/api/buyer/dashboard`, config),
-
+        
         axios.get(`http://localhost:5000/api/buyer/group/joined?userId=${userId}`, config),
         axios.get(`http://localhost:5000/api/buyer/orders?userId=${userId}`, config),
         axios.get(`http://localhost:5000/api/buyer/needs?userId=${userId}`, config),
       ]);
-
+      console.log("📊 Données dashboard :", statsRes.data); // 👈 AJOUTE ÇA
       setStats(statsRes.data);
       setMyGroups(groupsRes.data);
       setRecentOrders(ordersRes.data);
@@ -121,21 +121,36 @@ useEffect(() => {
     </CardContent>
   </Card>
 
+
   <Card>
-    <CardContent className="p-6 flex items-center justify-between">
-      <div>
-        <p className="text-sm font-medium text-gray-600">
-          Besoins en attente
-        </p>
-        <p className="text-2xl font-bold text-orange-600">
-          {stats.pendingNeeds}
-        </p>
-      </div>
-      <div className="bg-orange-100 p-3 rounded-full">
-        <Clock className="h-6 w-6 text-orange-600" />
-      </div>
-    </CardContent>
-  </Card>
+  <CardHeader>
+    <CardTitle>Besoins récents</CardTitle>
+    <CardDescription>Vos besoins récemment exprimés</CardDescription>
+  </CardHeader>
+  <CardContent>
+    {recentNeeds.length === 0 ? (
+      <p className="text-gray-500 text-sm">Aucun besoin exprimé.</p>
+    ) : (
+      recentNeeds.map((need) => (
+        <div key={need.needId} className="mb-4 p-4 border rounded-lg">
+          <h4 className="text-sm font-semibold">
+            {need.productName}
+          </h4>
+          <p className="text-xs text-gray-600">
+            {need.description}
+          </p>
+          <p className="text-xs text-gray-500">
+            Quantité : {need.quantity}
+          </p>
+          <p className="text-xs text-gray-400 italic">
+            Date : {new Date(need.createdAt).toLocaleDateString()}
+          </p>
+        </div>
+      ))
+    )}
+  </CardContent>
+</Card>
+
 </div>
 
         {/* Contenu principal */}

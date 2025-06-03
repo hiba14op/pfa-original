@@ -61,14 +61,15 @@ router.get('/orders', (req, res) => {
 
 const verifyToken = require('../middleware/auth');
 
-// 📊 Statistiques acheteur
+
+// 📊 Statistiques acheteur (groupes + commandes + besoins)
 router.get('/dashboard', verifyToken, (req, res) => {
   const buyerId = req.user.userId;
-  console.log("✅ [GET /dashboard] buyerId =", buyerId);
+  console.log("🛡️ Token reçu avec userId:", buyerId);
 
   const stats = { activeGroups: 0, totalOrders: 0, pendingNeeds: 0 };
 
-  console.log("🔍 Étape 1 : Groupes rejoints...");
+  // Étape 1 : Groupes rejoints
   db.query(
     'SELECT COUNT(*) AS count FROM groupparticipation WHERE userId = ?',
     [buyerId],
@@ -79,7 +80,7 @@ router.get('/dashboard', verifyToken, (req, res) => {
       }
       stats.activeGroups = result1[0].count;
 
-      console.log("🔍 Étape 2 : Commandes passées...");
+      // Étape 2 : Commandes passées
       db.query(
         'SELECT COUNT(*) AS count FROM orders WHERE userId = ?',
         [buyerId],
@@ -90,7 +91,7 @@ router.get('/dashboard', verifyToken, (req, res) => {
           }
           stats.totalOrders = result2[0].count;
 
-          console.log("🔍 Étape 3 : Besoins en attente...");
+          // Étape 3 : Besoins en attente
           db.query(
             'SELECT COUNT(*) AS count FROM needs WHERE userId = ? AND status = "en attente"',
             [buyerId],
@@ -101,6 +102,7 @@ router.get('/dashboard', verifyToken, (req, res) => {
               }
               stats.pendingNeeds = result3[0].count;
 
+              // ✅ Fin
               console.log("✅ Statistiques acheteur :", stats);
               res.json(stats);
             }
@@ -110,6 +112,8 @@ router.get('/dashboard', verifyToken, (req, res) => {
     }
   );
 });
+
+
 
 module.exports = router;
 

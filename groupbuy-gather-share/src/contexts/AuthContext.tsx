@@ -79,7 +79,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     console.log('Signup attempt:', { email, password, name, role });
 
     const newUser: User = {
-      id: Date.now().toString(),
+      userId: Date.now(),
       email,
       name,
       role,
