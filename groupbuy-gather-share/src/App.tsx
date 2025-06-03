@@ -116,7 +116,10 @@ export default function App() {
     </ProtectedRoute>
   }
 >
-  <Route index element={<BuyerDashboard />} /> {/* Accueil */}
+  <Route index element={<Navigate to="dashboard" replace />} />
+ <Route path="dashboard" element={<BuyerDashboard />} />
+{/* 
+   */}
   <Route path="needs" element={<CreateNeed />} /> {/* Mes Besoins */}
   <Route path="MesGroupes" element={<MesGroupes />} /> {/* Mes Groupes */}
   <Route path="orders" element={<OrderList />} /> {/* Commandes */}

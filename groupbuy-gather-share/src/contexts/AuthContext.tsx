@@ -3,7 +3,7 @@ import { useToast } from '@/hooks/use-toast';
 import axios from 'axios';
 
 interface User {
-  id: string;
+  userId: number;
   email: string;
   name: string;
   username: string;
@@ -37,6 +37,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       
       if (token && foundUser) {
         localStorage.setItem('token', token);
+        localStorage.setItem('userId', String(foundUser.userId));
         localStorage.setItem('userRole', foundUser.role);
 
         setUser(foundUser);

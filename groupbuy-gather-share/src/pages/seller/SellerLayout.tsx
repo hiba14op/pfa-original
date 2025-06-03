@@ -121,16 +121,6 @@ axios.get("http://localhost:5000/api/seller/my-products", {
             </div>
           </div>
   
-          {/* 🟪 Carte Revenus */}
-          <div className="bg-white p-6 rounded-lg shadow-md">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-600">Revenus</p>
-                <p className="text-2xl font-bold text-purple-600">{stats.revenue} €</p>
-              </div>
-              <DollarSign className="w-8 h-8 text-purple-600" />
-            </div>
-          </div>
   
           {/* 🟣 Carte Groupes créés */}
           <div className="bg-white p-6 rounded-lg shadow-md">

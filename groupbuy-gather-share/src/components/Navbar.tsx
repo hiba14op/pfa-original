@@ -20,6 +20,11 @@ export default function Navbar() {
         </>
       ) : (
         <>
+                  {user?.role === "buyer" && (
+            <Link to="/buyer" className="ml-4">
+              Espace Acheteur
+            </Link>
+          )}
           {/* si seller → lien vers son espace */}
           {user?.role === "seller" && (
             <Link to="/seller" className="ml-4">

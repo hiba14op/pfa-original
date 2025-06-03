@@ -157,6 +157,34 @@ router.post('/:id/join', verifyToken, (req, res) => {
   });
 });
 
+// 🔹 Quitter un groupe
+router.post('/:id/leave', verifyToken, (req, res) => {
+  const groupId = req.params.id;
+  const userId = req.user.userId;
+
+  // Vérifier si l'utilisateur participe à ce groupe
+  const checkSql = 'SELECT * FROM groupparticipation WHERE orderId = ? AND userId = ?';
+  db.query(checkSql, [groupId, userId], (err, results) => {
+    if (err) return res.status(500).json({ error: err });
+    if (results.length === 0) {
+      return res.status(404).json({ message: "Participation introuvable" });
+    }
+
+    // Supprimer la participation
+    const deleteSql = 'DELETE FROM groupparticipation WHERE orderId = ? AND userId = ?';
+    db.query(deleteSql, [groupId, userId], (err) => {
+      if (err) return res.status(500).json({ error: err });
+
+      // Décrémenter la taille du groupe
+      const updateSql = 'UPDATE grouporder SET currentGroupSize = currentGroupSize - 1 WHERE orderId = ?';
+      db.query(updateSql, [groupId], (err) => {
+        if (err) return res.status(500).json({ error: err });
+        res.status(200).json({ message: "Vous avez quitté le groupe avec succès" });
+      });
+    });
+  });
+});
+
 // Exemple d'utilisation d'axios pour récupérer les groupes ouverts
 // ⚠️ Ce code ne doit pas être exécuté côté backend car localStorage n'existe que dans le navigateur.
 // axios.get('http://localhost:5000/api/grouporder/open', {

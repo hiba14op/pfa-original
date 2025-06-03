@@ -1,4 +1,6 @@
 const jwt = require('jsonwebtoken');
+console.log("🛡️ JWT_SECRET utilisé :", process.env.JWT_SECRET);
+
 
 function verifyToken(req, res, next) {
   const authHeader = req.headers.authorization;

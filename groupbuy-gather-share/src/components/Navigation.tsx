@@ -53,28 +53,12 @@ export const Navigation = () => {
               <span className="text-xl font-bold text-gray-900">GroupBuy</span>
             </Link>
             
-            {isAuthenticated && (
-              <div className="hidden md:flex ml-10 space-x-8">
-              <Link to="/group-list" className="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium">
-  Groupes
-</Link>
+  
                 {user?.role === 'buyer' && (
                   <>
-                    <Link to="/buyer" className="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium">
-                      Tableau de bord
-                    </Link>
-                    <Link to="/buyer/needs" className="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium">
-                      Exprimer un besoin
-                    </Link>
-                    <Link to="/buyer/create-group" className="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium">
-                      Créer un groupe
-                    </Link>
-                    <Link
-  to="/buyer/mes-besoins-exprimes"
-  className="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium"
->
-  Mes Besoins Exprimés
-</Link>
+      
+                    
+
                   </>
                 )}
                 {user?.role === 'seller' && (
@@ -99,7 +83,7 @@ export const Navigation = () => {
                   </>
                 )}
               </div>
-            )}
+            
           </div>
 
           <div className="flex items-center space-x-4">
@@ -160,7 +144,7 @@ export const Navigation = () => {
             )}
           </div>
         </div>
-      </div>
+     
     </nav>
   );
 };

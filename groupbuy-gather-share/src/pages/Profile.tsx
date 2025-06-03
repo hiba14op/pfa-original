@@ -144,7 +144,7 @@ const Profile = () => {
     const handleDeleteAccount = async () => {
       const confirmed = window.confirm("Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est irréversible.");
       if (!confirmed) return;
-
+const newRole = user?.role === 'buyer' ? 'seller' : 'buyer';
     try {
       const token = localStorage.getItem('token');
       await axios.put('http://localhost:5000/api/users/role', { role: newRole }, {
