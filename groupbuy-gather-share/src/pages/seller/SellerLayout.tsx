@@ -6,7 +6,8 @@ import MesProduits from '@/pages/seller/MesProduits';
 import SellerOrders from '@/pages/seller/SellerOrders';
 import TarifsGroupes from '@/pages/seller/TarifsGroupes';
 import SellerProfile from '@/pages/seller/SellerProfile';
-
+import BuyerNeedsList from './BuyerNeedsList'; // adapte le chemin si nécessaire
+import { useLocation } from 'react-router-dom';
 
 import {
   User,
@@ -22,11 +23,34 @@ import {
 } from 'lucide-react';
 
 const SellerLayout = () => {
-  const [activeTab, setActiveTab] = useState('home');
+  const location = useLocation();
+  const [activeTab, setActiveTab] = useState(() => {
+    if (location.pathname.includes('create-group')) return 'createGroup';
+    if (location.pathname.includes('groups')) return 'groups';
+    if (location.pathname.includes('orders')) return 'orders';
+    if (location.pathname.includes('products')) return 'products';
+    if (location.pathname.includes('pricing')) return 'pricing';
+    if (location.pathname.includes('profile')) return 'profile';
+    if (location.pathname.includes('needs')) return 'needs';
+     return 'home';
+  });
+
   const [products, setProducts] = useState([]);
   const [orders, setOrders] = useState([]);
   const [stats, setStats] = useState({ products: 0, orders: 0, revenue: 0 , groups: 0});
-
+  
+  
+  useEffect(() => {
+    if (location.pathname.includes('create-group')) setActiveTab('createGroup');
+    else if (location.pathname.includes('groups')) setActiveTab('groups');
+    else if (location.pathname.includes('orders')) setActiveTab('orders');
+    else if (location.pathname.includes('products')) setActiveTab('products');
+    else if (location.pathname.includes('pricing')) setActiveTab('pricing');
+    else if (location.pathname.includes('profile')) setActiveTab('profile');
+    else if (location.pathname.includes('needs')) setActiveTab('needs');
+    else setActiveTab('home');
+  }, [location.pathname]);
+  
   useEffect(() => {
     axios.put("http://localhost:5000/api/seller/update-statuses")
     .then(() => console.log("✅ Statuts des groupes mis à jour automatiquement"))
@@ -76,7 +100,8 @@ axios.get("http://localhost:5000/api/seller/my-products", {
     { id: 'pricing', label: 'Tarifs Groupés', icon: <DollarSign className="w-5 h-5" /> },
     { id: 'profile', label: 'Profil', icon: <User className="w-5 h-5" /> },
     { id: 'createGroup', label: 'Créer un Groupe', icon: <Plus className="w-5 h-5" />, path: '/seller/create-group' },
-    
+    { id: 'needs', label: 'Besoins des acheteurs', icon: <Eye className="w-5 h-5" /> },
+
   ];
 
   const renderContent = () => {
@@ -93,6 +118,9 @@ axios.get("http://localhost:5000/api/seller/my-products", {
           return <SellerProfile />;
       case 'orders':
           return <SellerOrders />;  
+      case 'needs':
+          return <BuyerNeedsList />;
+          
 
   case 'home':
     return (

@@ -16,7 +16,7 @@ import MesBesoinsExprimes from "./MesBesoinsExprimes"; // ✅ bon nom
 import CreateGroup from "./CreateGroup";
 import ExprimerBesoin from "./CreateNeed"; // ⛳ fichier = CreateNeed.tsx
 import BuyerProfile from "./SettingsPage"; // ⛳ fichier = SettingsPage.tsx
-
+import AvailableGroups from './AvailableGroups';// adapte le chemin si besoin
 
 interface Stats {
   activeGroups: number;
@@ -58,16 +58,20 @@ const config = {
 
   const menuItems = [
     { id: "home", label: "Accueil", icon: <User className="w-5 h-5" /> },
+    { id: "availableGroups", label: "Groupes Disponibles", icon: <List className="w-5 h-5" /> },
     { id: "groups", label: "Mes Groupes", icon: <Users className="w-5 h-5" /> },
     { id: "orders", label: "Commandes", icon: <ShoppingCart className="w-5 h-5" /> },
     { id: "needs", label: "Mes Besoins Exprimés", icon: <List className="w-5 h-5" /> },
     { id: "createGroup", label: "Créer un Groupe", icon: <Plus className="w-5 h-5" /> },
     { id: "expressNeed", label: "Exprimer un Besoin", icon: <Edit className="w-5 h-5" /> },
     { id: "profile", label: "Profil", icon: <Settings className="w-5 h-5" /> },
+
   ];
 
   const renderContent = () => {
     switch (activeTab) {
+      case "availableGroups": 
+        return <AvailableGroups />;
       case "groups":
         return <MesGroupes />;
       case "orders":

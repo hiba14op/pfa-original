@@ -36,17 +36,29 @@ const categories = [
   'Gaming',
   'Autres',
 ]
+import { useLocation } from 'react-router-dom';
 
 export default function CreateGroup({ onGroupCreated }: { onGroupCreated?: () => void }) {
-  const [formData, setFormData] = useState({
-    title: '',
-    category: '',
-    originalPrice: '',
-    minParticipants: '',
-    maxParticipants: '',
-    endDate: '',
-    features: [''],
-  })
+
+    const location = useLocation();
+    const queryParams = new URLSearchParams(location.search);
+    const needId = queryParams.get("needId");
+  
+    const [formData, setFormData] = useState({
+      title: '',
+      category: '',
+      originalPrice: '',
+      minParticipants: '',
+      maxParticipants: '',
+      endDate: '',
+      features: [''],
+      description: '',
+      quantity: '',
+      supplierId: '',
+    });
+   
+    
+    
   const [priceBreakdown, setPriceBreakdown] = useState([
     { participants: '1-10', price: '' },
     { participants: '11-25', price: '' },
@@ -86,45 +98,69 @@ export default function CreateGroup({ onGroupCreated }: { onGroupCreated?: () =>
   
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    try {
-      const token = localStorage.getItem('token')
-      const config = { headers: { Authorization: `Bearer ${token}` } }
-      const payload = {
-  ...formData,
-  originalPrice: Number(formData.originalPrice),
-  minParticipants: Number(formData.minParticipants),
-  maxParticipants: Number(formData.maxParticipants),
-  priceBreakdown: priceBreakdown.map(tier => ({
-    participants: tier.participants,
-    price: parseFloat(tier.price)
-  }))
-}
-      console.log("📦 Données envoyées au backend :", payload)
-      await axios.post(
-        'http://localhost:5000/api/seller/groups',
-        payload,
-        config
-      )
-      toast({
-        title: 'Groupe créé !',
-        description:
-          "Votre groupe d'achat est maintenant visible par les acheteurs.",
-      })
-      navigate('/seller')
-      if (onGroupCreated) onGroupCreated();
+  e.preventDefault()
+  setLoading(true)
+  try {
+    const token = localStorage.getItem('token');
+    const decodedToken = JSON.parse(atob(token!.split('.')[1]));
+    const supplierId = decodedToken.userId;
 
-    } catch (err) {
-      console.error(err)
-      toast({
-        title: 'Erreur',
-        description: "La création du groupe a échoué.",
-        variant: 'destructive',
-      })
+    const config = { headers: { Authorization: `Bearer ${token}` } }
+
+    const payload = {
+      ...formData,
+      supplierId, // ✅ récupération directe du token
+      originalPrice: Number(formData.originalPrice),
+      minParticipants: Number(formData.minParticipants),
+      maxParticipants: Number(formData.maxParticipants),
+      priceBreakdown: priceBreakdown.map(tier => ({
+        participants: tier.participants,
+        price: parseFloat(tier.price)
+      }))
     }
-    setLoading(false)
+
+    console.log("📦 Données envoyées au backend :", payload)
+
+    await axios.post(
+      'http://localhost:5000/api/seller/groups',
+      payload,
+      config
+    )
+
+    toast({
+      title: 'Groupe créé !',
+      description: "Votre groupe d'achat est maintenant visible par les acheteurs.",
+    })
+    navigate('/seller')
+    if (onGroupCreated) onGroupCreated();
+
+  } catch (err) {
+    console.error(err)
+    toast({
+      title: 'Erreur',
+      description: "La création du groupe a échoué.",
+      variant: 'destructive',
+    })
   }
+  setLoading(false)
+}
+
+  
+  useEffect(() => {
+    if (needId) {
+      axios.get(`http://localhost:5000/api/seller/needs/${needId}`)
+        .then(res => {
+          const need = res.data;
+          setFormData(prev => ({
+            ...prev,
+            title: need.productName || '',
+            description: need.description || '',
+            quantity: need.quantity?.toString() || ''
+          }));
+        })
+        .catch(err => console.error("Erreur chargement du besoin :", err));
+    }
+  }, [needId]);
   
 
 useEffect(() => {

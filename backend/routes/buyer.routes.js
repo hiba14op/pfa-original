@@ -112,6 +112,32 @@ router.get('/dashboard', verifyToken, (req, res) => {
     }
   );
 });
+// 🔹 GET tous les groupes ouverts (accessibles aux acheteurs)
+router.get('/groups', verifyToken, (req, res) => {
+  const buyerId = req.user.userId;
+
+  const sql = `
+    SELECT g.*, 
+           g.title AS productName,
+           CASE 
+             WHEN gp.userId IS NOT NULL THEN 1 
+             ELSE 0 
+           END AS isJoined
+    FROM grouporder g
+    LEFT JOIN groupparticipation gp 
+      ON g.orderId = gp.orderId AND gp.userId = ?
+    WHERE g.status = 'ouvert'
+  `;
+
+  db.query(sql, [buyerId], (err, results) => {
+    if (err) {
+      console.error("❌ Erreur lors de la récupération des groupes :", err);
+      return res.status(500).json({ error: "Erreur serveur" });
+    }
+    res.json(results);
+  });
+});
+
 
 
 

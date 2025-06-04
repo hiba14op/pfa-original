@@ -3,6 +3,8 @@ const router = express.Router();
 const db = require('../db')();
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const verifyToken = require('../middleware/auth');
+
 
 // ✅ Route : POST /signup
 router.post('/signup', async (req, res) => {
@@ -98,5 +100,18 @@ router.post('/login', (req, res) => {
     });
   });
 });
+// 🔐 Route : GET /profile – récupérer les infos de l'utilisateur connecté
+router.get('/profile', verifyToken, (req, res) => {
+  const userId = req.user.userId;
+
+  const sql = 'SELECT userId AS id, username, email, role FROM user WHERE userId = ?';
+  db.query(sql, [userId], (err, results) => {
+    if (err) return res.status(500).json({ error: 'Erreur serveur' });
+    if (results.length === 0) return res.status(404).json({ message: 'Utilisateur non trouvé' });
+
+    res.json({ user: results[0] });
+  });
+});
+
 
 module.exports = router;

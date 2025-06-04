@@ -13,6 +13,7 @@ const CreateGroup = () => {
     deliveryAddress: '',
     image: ''
   });
+ 
   const [needs, setNeeds] = useState<any[]>([]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -67,7 +68,6 @@ const CreateGroup = () => {
 />
 
         <input name="totalAmount" placeholder="Montant total (€)" onChange={handleChange} required />
-        <input name="supplierId" placeholder="ID Fournisseur" onChange={handleChange} required />
         <input name="maxGroupSize" placeholder="Taille max" onChange={handleChange} required />
         <input name="minGroupSize" placeholder="Taille min" onChange={handleChange} required />
         <input name="deliveryAddress" placeholder="Adresse de livraison" onChange={handleChange} required />

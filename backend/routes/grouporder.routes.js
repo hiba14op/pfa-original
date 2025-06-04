@@ -68,11 +68,12 @@ router.get('/open', verifyToken, (req, res) => {
            END AS isJoined
     FROM grouporder g
     LEFT JOIN groupparticipation gp ON g.orderId = gp.orderId AND gp.userId = ?
-    WHERE g.status = 'ouvert';
+    WHERE g.status = 'ouvert'
   `;
 
   db.query(sql, [userId], (err, results) => {
     if (err) return res.status(500).json({ error: err });
+    console.log("📦 Résultats envoyés à l'acheteur :", results);
     res.json(results);
   });
 });

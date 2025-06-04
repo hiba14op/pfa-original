@@ -277,4 +277,43 @@ router.put('/update-statuses', (req, res) => {
   });
 });
 
+// 🔍 Récupérer un besoin spécifique par ID
+router.get('/needs', (req, res) => {
+  const sql = `
+    SELECT n.*, u.username AS buyerName 
+    FROM needs n
+    LEFT JOIN user u ON n.userId = u.userId
+    ORDER BY n.createdAt DESC
+  `;
+
+  db.query(sql, (err, results) => {
+    if (err) {
+      console.error("Erreur SQL :", err);  // ← Ajoute ce log
+      return res.status(500).json({ error: err });
+    }
+    console.log("Besoins envoyés au vendeur :", results); // ← Ajoute ce log
+    res.json(results);
+  });
+});
+
+//create
+router.get('/needs/:needId', (req, res) => {
+  const needId = req.params.needId;
+
+  const sql = `
+    SELECT n.*, u.username AS buyerName 
+    FROM needs n
+    LEFT JOIN user u ON n.userId = u.userId
+    WHERE n.needId = ?
+  `;
+
+  db.query(sql, [needId], (err, results) => {
+    if (err) return res.status(500).json({ error: err });
+    if (results.length === 0) return res.status(404).json({ message: "Besoin introuvable" });
+
+    res.json(results[0]);
+  });
+});
+
+
 module.exports = router;
