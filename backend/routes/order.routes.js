@@ -1,7 +1,39 @@
-const express = require('express');
-const router = express.Router();
+const express = require('express');            // ✅ d'abord
+const router = express.Router();               // ✅ ensuite
 const db = require('../db')();
 const verifyToken = require('../middleware/auth');
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+
+router.post('/create-checkout-session', verifyToken, async (req, res) => {
+  const { productName, amount } = req.body;
+
+  try {
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ['card'],
+      line_items: [{
+        price_data: {
+          currency: 'eur',
+          product_data: {
+            name: productName,
+          },
+          unit_amount: amount * 100, // 💶 en centimes
+        },
+        quantity: 1,
+      }],
+      mode: 'payment',
+      success_url: 'http://localhost:8080/success',
+      cancel_url: 'http://localhost:8080/cancel',
+    });
+
+    res.json({ url: session.url });
+  } catch (error) {
+    console.error("❌ Erreur Stripe :", error);
+    res.status(500).json({ error: 'Erreur paiement Stripe' });
+  }
+});
+
+
+
 
 // POST /api/orders/:orderId/items — Ajouter un produit à une commande de groupe
 router.post('/:orderId/items', verifyToken, (req, res) => {
@@ -20,6 +52,27 @@ router.post('/:orderId/items', verifyToken, (req, res) => {
     res.status(201).json({ message: "Produit ajouté à la commande avec succès." });
   });
 });
+router.post('/pay/:groupId', verifyToken, (req, res) => {
+  const userId = req.user.userId;
+  const groupId = req.params.groupId;
+
+  const sql = `
+    INSERT INTO orders (userId, groupId, productName, amount, status, orderDate, isPaid)
+    SELECT ?, g.orderId, g.productName, g.totalAmount, 'confirmée', NOW(), TRUE
+    FROM grouporder g
+    WHERE g.orderId = ?
+  `;
+
+  db.query(sql, [userId, groupId], (err, result) => {
+    if (err) {
+      console.error("❌ Erreur lors du paiement :", err);
+      return res.status(500).json({ message: "Erreur lors du paiement" });
+    }
+
+    return res.status(200).json({ message: "✅ Commande créée et payée !" });
+  });
+});
+
 
 // GET /api/orders/:orderId/my-items — Voir les produits commandés par l’utilisateur dans ce groupe
 router.get('/:orderId/my-items', verifyToken, (req, res) => {

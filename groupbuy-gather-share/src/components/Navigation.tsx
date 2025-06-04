@@ -56,9 +56,6 @@ export const Navigation = () => {
   
                 {user?.role === 'buyer' && (
                   <>
-      
-                    
-
                   </>
                 )}
                 {user?.role === 'seller' && (

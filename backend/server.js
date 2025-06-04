@@ -46,6 +46,8 @@ const { connectToDatabase } = require('./db');
 
 console.log('groupOrderValidationRoutes:', groupOrderValidationRoutes);
 // ✅ Utilisation des routes API
+
+
 app.use('/api/auth', authRoutes);
 app.use('/api/protected', protectedRoutes);
 app.use('/api/products', productRoutes);

@@ -58,7 +58,7 @@ const config = {
 
   const menuItems = [
     { id: "home", label: "Accueil", icon: <User className="w-5 h-5" /> },
-    { id: "availableGroups", label: "Groupes Disponibles", icon: <List className="w-5 h-5" /> },
+    //{ id: "availableGroups", label: "Groupes Disponibles", icon: <List className="w-5 h-5" /> },
     { id: "groups", label: "Mes Groupes", icon: <Users className="w-5 h-5" /> },
     { id: "orders", label: "Commandes", icon: <ShoppingCart className="w-5 h-5" /> },
     { id: "needs", label: "Mes Besoins Exprimés", icon: <List className="w-5 h-5" /> },

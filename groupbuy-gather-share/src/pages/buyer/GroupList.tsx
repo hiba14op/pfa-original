@@ -74,7 +74,7 @@ const GroupList: React.FC<GroupListProps> = ({ fetchData }) => {
         placeholder="Rechercher un produit..."
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
-        className="mb-4 p-2 border border-gray-300 rounded w-full"
+        className="mb-6 p-3 border-2 border-blue-500 font-semibold shadow-md rounded w-full focus:outline-none focus:ring-2 focus:ring-blue-400"
       />
 
       {filteredGroups.length === 0 ? (

@@ -1,98 +1,88 @@
-import React, { useState, useEffect } from "react";
-import { useAuth } from "@/contexts/AuthContext"; // ✅ Assure-toi que ce chemin est correct
+import { useEffect, useState } from 'react';
+import axios from 'axios';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
 
-const SettingsPage = () => {
-  const { user } = useAuth(); // 👈 récupère l'utilisateur connecté
-  const [username, setUsername] = useState("");
-  const [email, setEmail] = useState("");
-  const [notifications, setNotifications] = useState({
-    email: true,
-    groups: true,
-    promos: false,
+const SellerProfile = () => {
+  const [profile, setProfile] = useState({
+    username: '',
+    email: '',
+    phoneNumber: '',
+    address: ''
+
   });
+  const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
-    if (user) {
-      setUsername(user.name || "");
-      setEmail(user.email || "");
-    }
-  }, [user]);
+    fetchProfile();
+  }, []);
+
+  const fetchProfile = () => {
+    axios.get('http://localhost:5000/api/seller/profile', {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('token')}`
+      }
+    })
+    .then(res => setProfile(res.data))
+    .catch(err => {
+      console.error("Erreur chargement profil", err);
+      toast({ title: "Erreur", description: "Impossible de charger le profil", variant: "destructive" });
+    });
+  };
+
+  const handleChange = (field: string, value: string) => {
+    setProfile(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    axios.put('http://localhost:5000/api/seller/profile', profile, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('token')}`
+      }
+    })
+    .then(() => {
+      toast({ title: "Succès", description: "Profil mis à jour avec succès ✅" });
+    })
+    .catch(err => {
+      console.error("Erreur mise à jour profil", err);
+      toast({ title: "Erreur", description: "Échec de mise à jour", variant: "destructive" });
+    })
+    .finally(() => setLoading(false));
+  };
+  {!profile.username && <p className="text-gray-500">Chargement du profil...</p>}
 
   return (
-    <div className="max-w-3xl mx-auto bg-white p-6 rounded-lg shadow-md space-y-6">
-      <h2 className="text-2xl font-bold text-gray-800">Paramètres du compte</h2>
-
-      <div className="space-y-4">
+    <div className="max-w-xl mx-auto mt-10 p-6 bg-white rounded shadow">
+      <h2 className="text-2xl font-bold mb-4">Mon Profil</h2>
+      <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700">Nom d'utilisateur</label>
-          <input
-            type="text"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            className="w-full p-3 mt-1 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-          />
+          <Label>Nom d'utilisateur</Label>
+          <Input value={profile.username} onChange={e => handleChange('username', e.target.value)} required />
         </div>
-
         <div>
-          <label className="block text-sm font-medium text-gray-700">Adresse e-mail</label>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="w-full p-3 mt-1 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-          />
+          <Label>Email</Label>
+          <Input type="email" value={profile.email} onChange={e => handleChange('email', e.target.value)} required />
         </div>
-
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Préférences de notification</label>
-          <div className="space-y-2">
-            <label className="flex items-center">
-              <input
-                type="checkbox"
-                checked={notifications.email}
-                onChange={(e) =>
-                  setNotifications({ ...notifications, email: e.target.checked })
-                }
-                className="mr-3 w-4 h-4 text-blue-600"
-              />
-              Notifications par email
-            </label>
-            <label className="flex items-center">
-              <input
-                type="checkbox"
-                checked={notifications.groups}
-                onChange={(e) =>
-                  setNotifications({ ...notifications, groups: e.target.checked })
-                }
-                className="mr-3 w-4 h-4 text-blue-600"
-              />
-              Alertes de nouveaux groupes
-            </label>
-            <label className="flex items-center">
-              <input
-                type="checkbox"
-                checked={notifications.promos}
-                onChange={(e) =>
-                  setNotifications({ ...notifications, promos: e.target.checked })
-                }
-                className="mr-3 w-4 h-4 text-blue-600"
-              />
-              Promotions et offres spéciales
-            </label>
-          </div>
+          <Label>Téléphone</Label>
+          <Input value={profile.phoneNumber} onChange={e => handleChange('phoneNumber', e.target.value)} />
         </div>
-
-        <div className="flex gap-4 mt-6">
-          <button className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors">
-            Sauvegarder
-          </button>
-          <button className="border border-gray-300 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-50 transition-colors">
-            Annuler
-          </button>
+        <div>
+          <Label>Adresse</Label>
+          <Input value={profile.address} onChange={e => handleChange('address', e.target.value)} />
         </div>
-      </div>
+        <Button type="submit" disabled={loading}>
+          {loading ? 'Enregistrement...' : 'Mettre à jour'}
+        </Button>
+      </form>
     </div>
   );
+  
 };
 
-export default SettingsPage;
+export default SellerProfile;

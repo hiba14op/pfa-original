@@ -13,9 +13,9 @@ interface Group {
 const MesGroupes: React.FC = () => {
   const [groups, setGroups] = useState<Group[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
-  // Fonction pour rafraîchir les groupes
   const fetchGroups = () => {
     axios.get(`${API_URL}/groupparticipation/my`, {
       headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
@@ -36,9 +36,8 @@ const MesGroupes: React.FC = () => {
     fetchGroups();
   }, []);
 
-  // Nouvelle fonction pour quitter un groupe
   const handleLeave = (orderId: number) => {
-    axios.post(`http://localhost:5000/api/grouporder/${orderId}/leave`, {}, {
+    axios.post(`${API_URL}/grouporder/${orderId}/leave`, {}, {
       headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
     })
     .then(() => {
@@ -50,17 +49,52 @@ const MesGroupes: React.FC = () => {
     });
   };
 
+const handleStripePay = async (group: Group) => {
+  try {
+    const res = await axios.post(`${API_URL}/orders/create-checkout-session`, {
+      productName: group.productName,
+      amount: group.totalAmount,
+    }, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('token')}`,
+      }
+    });
+
+    window.location.href = res.data.url; // Redirection vers Stripe Checkout
+  } catch (error) {
+    alert("❌ Paiement échoué");
+    console.error("Erreur Stripe :", error);
+  }
+};
+
+
+
+
+  const filteredGroups = groups.filter(group =>
+    group.productName?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
     <div className="p-6">
       <h1 className="text-2xl font-bold mb-4">Mes Groupes</h1>
 
+      {/* ✅ Barre de recherche */}
+<input
+  type="text"
+  placeholder="🔍 Rechercher un produit..."
+  className="mb-6 p-3 border-2 border-blue-500 font-semibold shadow-md rounded w-full focus:outline-none focus:ring-2 focus:ring-blue-400"
+  value={searchTerm}
+  onChange={(e) => setSearchTerm(e.target.value)}
+/>
+
+
       {loading ? (
         <p>Chargement en cours...</p>
-      ) : groups.length === 0 ? (
-        <p>Vous n'avez rejoint aucun groupe pour l'instant.</p>
+      ) : filteredGroups.length === 0 ? (
+        <p>Aucun groupe trouvé.</p>
       ) : (
         <div className="space-y-4">
-          {groups.map((group) => (
+          {filteredGroups.map((group) => (
             <div
               key={group.orderId}
               className="p-4 border rounded-lg shadow bg-white"
@@ -79,6 +113,15 @@ const MesGroupes: React.FC = () => {
               >
                 Quitter
               </button>
+<button
+  className="mt-2 bg-blue-600 text-white px-3 py-1 rounded ml-2"
+  onClick={() => handleStripePay(group)}
+>
+  Payer par carte
+</button>
+
+
+
             </div>
           ))}
         </div>

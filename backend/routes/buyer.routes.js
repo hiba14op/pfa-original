@@ -82,7 +82,8 @@ router.get('/dashboard', verifyToken, (req, res) => {
 
       // Étape 2 : Commandes passées
       db.query(
-        'SELECT COUNT(*) AS count FROM orders WHERE userId = ?',
+        
+        'SELECT COUNT(*) AS count FROM orders WHERE userId = ? AND isPaid = 1',
         [buyerId],
         (err, result2) => {
           if (err) {
@@ -90,6 +91,9 @@ router.get('/dashboard', verifyToken, (req, res) => {
             return res.status(500).json({ error: err });
           }
           stats.totalOrders = result2[0].count;
+
+
+ 
 
           // Étape 3 : Besoins en attente
           db.query(
@@ -135,6 +139,30 @@ router.get('/groups', verifyToken, (req, res) => {
       return res.status(500).json({ error: "Erreur serveur" });
     }
     res.json(results);
+  });
+});
+
+// ... autres routes (dashboard, groups, etc.)
+
+// ✅ Bien placé : à la fin
+router.post('/pay/:groupId', verifyToken, (req, res) => {
+  const userId = req.user.userId;
+  const groupId = req.params.groupId;
+
+  const sql = `
+    INSERT INTO orders (userId, groupId, productName, amount, status, orderDate, isPaid)
+    SELECT ?, g.orderId, g.productName, g.totalAmount, 'confirmée', NOW(), TRUE
+    FROM grouporder g
+    WHERE g.orderId = ?
+  `;
+
+  db.query(sql, [userId, groupId], (err, result) => {
+    if (err) {
+      console.error("❌ Erreur paiement :", err);
+      return res.status(500).json({ message: "Erreur lors du paiement" });
+    }
+
+    return res.status(200).json({ message: "✅ Commande créée et payée !" });
   });
 });
 
